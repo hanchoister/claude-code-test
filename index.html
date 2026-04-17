@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#c08442">
+<meta name="color-scheme" content="light">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Journal">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Daily Journal</title>
+<style>
+  :root {
+    --bg: #f6f1e8;
+    --paper: #fffdf8;
+    --ink: #2d2a26;
+    --ink-soft: #6b6358;
+    --ink-faint: #a89f92;
+    --rule: #e5ddce;
+    --rule-soft: #efe9dc;
+    --accent: #c08442;
+    --accent-deep: #9a6427;
+    --accent-bg: #f7ecd9;
+    --good: #5b8a6a;
+    --warn: #c47a3c;
+    --bad: #a4483f;
+    --mood-1: #a4483f;
+    --mood-2: #c47a3c;
+    --mood-3: #c8a34a;
+    --mood-4: #7a9a5a;
+    --mood-5: #4f7d86;
+    --safe-top: env(safe-area-inset-top);
+    --safe-bot: env(safe-area-inset-bottom);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: "Iowan Old Style", "Palatino", "Georgia", serif;
+    color: var(--ink);
+    background: var(--bg);
+    font-size: 15px;
+    line-height: 1.5;
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bot);
+    -webkit-tap-highlight-color: transparent;
+  }
+  button, input, textarea, select {
+    font-family: inherit;
+    color: inherit;
+    font-size: 16px; /* prevents iOS zoom on focus */
+  }
+
+  /* ── Top bar ───────────────────────────────────── */
+  header.topbar {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 20px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+    position: sticky; top: 0; z-index: 40;
+  }
+  .brand {
+    font-family: "Iowan Old Style", "Palatino", serif;
+    font-size: 20px; font-weight: 700; letter-spacing: .3px;
+    color: var(--accent-deep);
+    margin-right: auto;
+    white-space: nowrap;
+  }
+  .brand .dot { color: var(--accent); }
+  nav.views { display: inline-flex; gap: 2px; background: var(--accent-bg);
+              padding: 3px; border-radius: 999px; overflow-x: auto; max-width: 60vw; }
+  nav.views button {
+    background: transparent; border: none; padding: 7px 14px;
+    font-size: 13px; color: var(--ink-soft); cursor: pointer;
+    border-radius: 999px; font-weight: 600; letter-spacing: .2px;
+    white-space: nowrap;
+  }
+  nav.views button.active {
+    background: var(--paper); color: var(--accent-deep);
+    box-shadow: 0 1px 2px rgba(0,0,0,.08);
+  }
+  .btn {
+    border: 1px solid var(--rule); background: var(--paper);
+    padding: 8px 14px; font-size: 13px; cursor: pointer;
+    border-radius: 6px; color: var(--ink); min-height: 36px;
+  }
+  .btn:hover { background: var(--accent-bg); }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  .btn.primary:hover { background: var(--accent-deep); border-color: var(--accent-deep); }
+  .btn.danger { color: var(--bad); }
+  .btn.danger:hover { background: #f7e4e2; }
+  .btn.ghost { border-color: transparent; background: transparent; }
+  .btn.ghost:hover { background: var(--accent-bg); }
+  .icon-btn {
+    border: 1px solid var(--rule); background: var(--paper);
+    width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 16px; color: var(--ink-soft); flex-shrink: 0;
+  }
+  .icon-btn:hover { background: var(--accent-bg); }
+
+  /* Sync button */
+  #sync-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--ink-soft);
+  }
+  #sync-btn .sync-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--ink-faint);
+    flex-shrink: 0;
+  }
+  #sync-btn.synced .sync-dot { background: var(--good); }
+  #sync-btn.syncing .sync-dot { background: var(--accent); animation: pulse 1s infinite; }
+  #sync-btn.dirty .sync-dot { background: var(--warn); }
+  #sync-btn.error .sync-dot { background: var(--bad); }
+  #sync-btn.offline .sync-dot { background: var(--ink-faint); }
+  @keyframes pulse { 50% { opacity: .4; } }
+
+  /* ── Reminder banner ──────────────────────────── */
+  #reminder-banner {
+    display: none;
+    background: #fff4d6; border-bottom: 1px solid #eddba6;
+    padding: 10px 20px; font-size: 13px; color: #5d4d1a;
+  }
+  #reminder-banner.show { display: block; }
+  #reminder-banner .rb-row {
+    display: flex; align-items: center; gap: 10px; padding: 4px 0;
+    flex-wrap: wrap;
+  }
+  #reminder-banner .rb-title { font-weight: 700; }
+  #reminder-banner .rb-actions { margin-left: auto; display: flex; gap: 6px; }
+  #reminder-banner .rb-actions button {
+    background: transparent; border: 1px solid #d4b348;
+    padding: 4px 10px; border-radius: 999px; font-size: 12px;
+    cursor: pointer; color: #5d4d1a; min-height: 28px;
+  }
+
+  /* First-run nudge */
+  #sync-nudge {
+    display: none;
+    background: var(--accent-bg); border-bottom: 1px solid var(--rule);
+    padding: 10px 20px; font-size: 13px; color: var(--accent-deep);
+  }
+  #sync-nudge.show { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  #sync-nudge .dismiss {
+    margin-left: auto; background: transparent; border: none; cursor: pointer;
+    color: var(--accent-deep); font-size: 18px; padding: 0 4px;
+  }
+
+  /* ── Main ──────────────────────────────────── */
+  main { padding: 20px; max-width: 1200px; margin: 0 auto; }
+  .page-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .page-head h2 { font-size: 24px; font-weight: 700; letter-spacing: .3px; color: var(--ink); flex: 1; min-width: 180px; }
+
+  /* Cards */
+  .card {
+    background: var(--paper); border: 1px solid var(--rule);
+    border-radius: 8px; padding: 18px 18px;
+    box-shadow: 0 1px 0 rgba(0,0,0,.02);
+  }
+  .card h3 {
+    font-size: 12px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--accent-deep);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .card h3 .count { font-size: 11px; color: var(--ink-faint); letter-spacing: .5px; text-transform: none; font-weight: 500; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  @media (max-width: 820px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* Inputs */
+  .field { margin-bottom: 10px; }
+  .field label {
+    display: block; font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--ink-soft); margin-bottom: 4px;
+  }
+  .field input[type="text"],
+  .field input[type="date"],
+  .field input[type="time"],
+  .field input[type="number"],
+  .field input[type="password"],
+  .field textarea,
+  .field select,
+  .auto-input {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid var(--rule); border-radius: 6px;
+    background: var(--paper); font-family: inherit;
+    font-size: 16px;
+  }
+  .field textarea, textarea.auto-input { resize: vertical; min-height: 64px; }
+  .auto-input {
+    border: none; background: transparent;
+    border-bottom: 1px dotted var(--rule); border-radius: 0;
+    padding: 6px 2px; font-size: 16px;
+  }
+  .auto-input:focus { outline: none; border-bottom-color: var(--accent); background: #fffaf0; }
+  .inline-row { display: flex; gap: 10px; }
+  .inline-row > * { flex: 1; }
+
+  .num-list { display: flex; flex-direction: column; gap: 6px; }
+  .num-list .num-row { display: flex; align-items: center; gap: 10px; }
+  .num-list .num-row .n {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--accent-bg); color: var(--accent-deep);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .num-list .num-row .auto-input { flex: 1; }
+
+  /* Calendar grids */
+  .month-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 1px; background: var(--rule); border: 1px solid var(--rule);
+    border-radius: 6px; overflow: hidden;
+  }
+  .month-grid .dow {
+    background: var(--paper); padding: 8px; font-size: 11px;
+    color: var(--ink-soft); text-align: center; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .day-cell {
+    background: var(--paper); min-height: 92px; padding: 6px 6px 4px;
+    cursor: pointer; position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .day-cell:hover { background: #fbf6ea; }
+  .day-cell.other-month { background: #fbf8f0; color: var(--ink-faint); }
+  .day-cell.today .day-num .num-inner {
+    background: var(--accent); color: #fff; border-radius: 50%;
+    width: 22px; height: 22px; display: inline-flex;
+    align-items: center; justify-content: center; font-weight: 700;
+  }
+  .day-num { font-size: 12px; font-weight: 600; margin-bottom: 2px;
+             display: flex; justify-content: space-between; align-items: center; }
+  .mood-pill { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+  .chip {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 11px; padding: 3px 7px; border-radius: 3px;
+    margin-bottom: 2px; cursor: pointer; line-height: 1.3;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-family: -apple-system, sans-serif;
+  }
+  .chip.upcoming { background: #eee2c8; color: var(--accent-deep); }
+  .chip.today-chip { background: #fef1d4; color: #5d4d1a; }
+  .chip.overdue { background: #f7dcd8; color: var(--bad); }
+  .chip.done { background: #edece7; color: var(--ink-faint); text-decoration: line-through; }
+  .chip .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .chip.upcoming .dot { background: var(--accent); }
+  .chip.today-chip .dot { background: #d29922; }
+  .chip.overdue .dot { background: var(--bad); }
+  .chip.done .dot { background: var(--ink-faint); }
+  .more-link { font-size: 11px; color: var(--accent-deep); cursor: pointer; margin-top: 2px; }
+
+  .mini-cal .day-cell { min-height: 44px; padding: 4px; font-size: 11px; }
+  .mini-cal .day-num { font-size: 11px; }
+  .mini-cal .mini-markers { display: flex; gap: 2px; margin-top: auto; }
+  .mini-cal .mini-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+  .week-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 1px; background: var(--rule); border: 1px solid var(--rule);
+    border-radius: 6px; overflow: hidden;
+  }
+  .week-col {
+    background: var(--paper); min-height: 320px; padding: 10px;
+    display: flex; flex-direction: column;
+  }
+  .week-col.today { background: #fef9ea; }
+  .week-col .week-head { text-align: center; border-bottom: 1px solid var(--rule-soft); padding-bottom: 6px; margin-bottom: 8px; }
+  .week-col .wh-label { font-size: 10px; font-weight: 700; color: var(--ink-soft); letter-spacing: 1.5px; text-transform: uppercase; }
+  .week-col .wh-day { font-size: 20px; font-weight: 700; color: var(--ink); }
+  .week-col.today .wh-day { color: var(--accent-deep); }
+  .week-col .chip { white-space: normal; }
+
+  .agenda { background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
+  .agenda .ag-group-head { background: #fbf6ea; padding: 8px 14px; font-size: 13px; font-weight: 700; color: var(--accent-deep); border-bottom: 1px solid var(--rule-soft); }
+  .agenda .ag-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--rule-soft); flex-wrap: wrap; }
+  .agenda .ag-item:last-child { border-bottom: none; }
+  .agenda .ag-title { flex: 1; min-width: 120px; }
+  .agenda .ag-title.done { text-decoration: line-through; color: var(--ink-faint); }
+  .agenda .ag-time { color: var(--ink-soft); font-size: 12px; min-width: 70px; }
+  .agenda .ag-recur { color: var(--accent-deep); font-size: 11px; background: var(--accent-bg); padding: 2px 8px; border-radius: 999px; }
+  .agenda input[type="checkbox"] { cursor: pointer; width: 20px; height: 20px; }
+
+  /* Habits */
+  .habit-strip { display: flex; gap: 8px; flex-wrap: wrap; }
+  .habit-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--paper); border: 1px solid var(--rule);
+    padding: 6px 12px; border-radius: 999px; font-size: 13px;
+  }
+  .habit-pill .streak { background: var(--accent); color: #fff; font-size: 11px; padding: 2px 7px; border-radius: 999px; font-weight: 700; }
+  .habit-pill .streak.zero { background: var(--ink-faint); }
+  .habit-grid-wrap { overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+  table.habit-grid { border-collapse: separate; border-spacing: 2px; font-family: -apple-system, sans-serif; font-size: 11px; }
+  table.habit-grid th { text-align: left; padding: 4px 8px; font-weight: 600; color: var(--ink-soft); vertical-align: middle; white-space: nowrap; }
+  table.habit-grid td { width: 18px; height: 18px; background: var(--rule-soft); border-radius: 3px; cursor: pointer; }
+  table.habit-grid td.done { background: var(--accent); }
+  table.habit-grid td.today-col { outline: 1px solid var(--accent-deep); }
+  table.habit-grid .date-label { font-size: 9px; color: var(--ink-faint); text-align: center; width: 18px; padding: 2px 0; }
+
+  /* Today */
+  .today-head {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    background: var(--paper); border: 1px solid var(--rule);
+    border-radius: 8px; padding: 10px 14px;
+  }
+  .today-head .date-label { font-size: 18px; font-weight: 700; letter-spacing: .3px; flex: 1; text-align: center; }
+  .today-head .dow-label { color: var(--accent-deep); font-size: 12px; margin-top: 2px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; }
+
+  .schedule-grid { display: grid; grid-template-columns: 48px 1fr; gap: 1px; }
+  .schedule-grid .hr { padding: 6px 8px; color: var(--ink-soft); font-size: 12px; text-align: right; font-family: -apple-system, sans-serif; border-top: 1px solid var(--rule-soft); }
+  .schedule-grid .sl { padding: 2px 8px; border-top: 1px solid var(--rule-soft); display: flex; align-items: center; gap: 6px; min-height: 34px; }
+  .schedule-grid .sl .auto-input { border: none; padding: 6px 0; background: transparent; }
+  .schedule-grid .sl .auto-input:focus { background: #fffaf0; }
+  .sl .chore-pin { font-size: 11px; background: var(--accent-bg); color: var(--accent-deep); padding: 3px 8px; border-radius: 999px; font-family: -apple-system, sans-serif; font-weight: 600; }
+
+  .habit-check-list { display: flex; flex-direction: column; gap: 4px; }
+  .habit-check-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; cursor: pointer; user-select: none; }
+  .habit-check-row .check-box { width: 24px; height: 24px; border: 2px solid var(--rule); border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; transition: all .1s; flex-shrink: 0; }
+  .habit-check-row.done .check-box { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  .habit-check-row .label { flex: 1; }
+  .habit-check-row.done .label { color: var(--ink-faint); text-decoration: line-through; }
+  .habit-check-row .streak-badge { font-size: 11px; color: var(--ink-faint); font-family: -apple-system, sans-serif; }
+  .habit-empty { color: var(--ink-faint); font-size: 13px; padding: 8px 0; }
+
+  .mood-picker { display: flex; gap: 6px; align-items: center; }
+  .mood-btn { flex: 1; padding: 10px 4px; border: 1px solid var(--rule); background: var(--paper); border-radius: 8px; cursor: pointer; font-size: 22px; text-align: center; }
+  .mood-btn.active { border-color: var(--accent); background: var(--accent-bg); transform: scale(1.05); }
+
+  .today-chores { display: flex; flex-direction: column; gap: 6px; }
+  .today-chore-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #fbf6ea; border: 1px solid var(--rule-soft); border-radius: 6px; }
+  .today-chore-row input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; flex-shrink: 0; }
+  .today-chore-row .ti { flex: 1; font-size: 14px; }
+  .today-chore-row.done .ti { text-decoration: line-through; color: var(--ink-faint); }
+  .today-chore-row .tt { font-size: 12px; color: var(--ink-soft); min-width: 60px; }
+
+  /* Modal */
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(40,30,20,.45); z-index: 100; align-items: center; justify-content: center; padding: 16px; overscroll-behavior: contain; }
+  .modal-bg.show { display: flex; }
+  .modal { background: var(--paper); border-radius: 10px; width: 520px; max-width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+  .modal .m-head { padding: 14px 18px; border-bottom: 1px solid var(--rule); display: flex; align-items: center; position: sticky; top: 0; background: var(--paper); z-index: 1; }
+  .modal .m-head h3 { flex: 1; font-size: 15px; font-weight: 700; color: var(--accent-deep); letter-spacing: 1.5px; text-transform: uppercase; }
+  .modal .m-body { padding: 16px 18px; }
+  .modal .m-foot { padding: 12px 18px; border-top: 1px solid var(--rule); display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; position: sticky; bottom: 0; background: var(--paper); }
+  .weekday-picker { display: flex; gap: 4px; }
+  .weekday-picker button { flex: 1; padding: 10px 6px; background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+  .weekday-picker button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .hide { display: none !important; }
+  .muted { color: var(--ink-soft); }
+  .empty-state { text-align: center; padding: 30px; color: var(--ink-faint); font-style: italic; }
+
+  /* Reviews */
+  .review-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+  .stat-card { background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 12px; text-align: center; }
+  .stat-card .stat-n { font-size: 24px; font-weight: 700; color: var(--accent-deep); line-height: 1; }
+  .stat-card .stat-l { font-size: 10px; color: var(--ink-soft); margin-top: 4px; letter-spacing: 1.5px; text-transform: uppercase; }
+  @media (max-width: 600px) { .review-stats { grid-template-columns: 1fr 1fr; } }
+
+  /* Conflict modal list */
+  .conflict-list { display: flex; flex-direction: column; gap: 8px; }
+  .conflict-item { border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; }
+  .conflict-item .ci-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+  .conflict-item .ci-versions { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--ink-soft); background: #faf6ec; padding: 6px 8px; border-radius: 4px; margin-bottom: 6px; white-space: pre-wrap; overflow-x: auto; }
+  .conflict-item .ci-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .conflict-item .ci-actions button { flex: 1; min-width: 100px; }
+  .conflict-item.resolved { opacity: .6; }
+
+  /* Mobile tweaks */
+  @media (max-width: 600px) {
+    header.topbar { padding: 10px 14px; gap: 8px; }
+    .brand { font-size: 18px; }
+    nav.views { max-width: 50vw; }
+    nav.views button { padding: 7px 10px; font-size: 12px; }
+    main { padding: 14px; }
+    .card { padding: 14px 14px; }
+    .page-head h2 { font-size: 20px; }
+    .day-cell { min-height: 70px; padding: 4px; }
+    .day-num { font-size: 11px; }
+    .chip { font-size: 10px; padding: 2px 5px; }
+    .grid-2 .card:has(.habit-grid-wrap) { overflow-x: auto; }
+    .schedule-grid { grid-template-columns: 42px 1fr; }
+    .mood-btn { padding: 12px 4px; font-size: 22px; }
+    .btn { padding: 10px 14px; font-size: 14px; min-height: 42px; }
+    .icon-btn { width: 40px; height: 40px; }
+    .today-head .date-label { font-size: 16px; }
+    .month-grid .dow { padding: 6px 2px; font-size: 10px; letter-spacing: 1px; }
+  }
+  @media (max-width: 420px) {
+    .btn-new-chore-label { display: none; }
+    .month-grid .dow { font-size: 9px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Journal<span class="dot">.</span></div>
+  <nav class="views" id="views">
+    <button data-view="dashboard" class="active">Home</button>
+    <button data-view="today">Today</button>
+    <button data-view="calendar">Cal</button>
+    <button data-view="habits">Habits</button>
+    <button data-view="reviews">Review</button>
+  </nav>
+  <button class="btn" id="sync-btn" title="Sync status"><span class="sync-dot"></span><span class="sync-label">…</span></button>
+  <button class="btn primary" id="btn-new-chore" title="New chore">+<span class="btn-new-chore-label"> New chore</span></button>
+</header>
+
+<div id="sync-nudge">
+  <span>📱 Enable sync to access your journal from other devices.</span>
+  <button class="btn" id="sync-setup-open">Set up sync</button>
+  <button class="dismiss" id="sync-nudge-dismiss" title="Hide">×</button>
+</div>
+
+<div id="reminder-banner"></div>
+
+<main id="main"></main>
+
+<!-- Chore modal -->
+<div class="modal-bg" id="modal-chore-bg">
+  <div class="modal">
+    <div class="m-head">
+      <h3 id="chore-modal-title">New chore</h3>
+      <button class="icon-btn" id="chore-modal-close">×</button>
+    </div>
+    <div class="m-body">
+      <div class="field"><label>Title</label><input type="text" id="cf-title" placeholder="e.g. Pay rent"></div>
+      <div class="field"><label>Notes</label><textarea id="cf-notes" placeholder="Details, links, etc."></textarea></div>
+      <div class="inline-row">
+        <div class="field"><label>Date</label><input type="date" id="cf-date"></div>
+        <div class="field"><label>Time</label><input type="time" id="cf-time"></div>
+      </div>
+      <div class="field"><label>Recurrence</label>
+        <select id="cf-recur">
+          <option value="none">Does not repeat</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+        </select>
+      </div>
+      <div class="field hide" id="cf-interval-row">
+        <label>Every</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="number" id="cf-interval" min="1" value="1" style="width:90px;">
+          <span id="cf-interval-unit" class="muted">days</span>
+        </div>
+      </div>
+      <div class="field hide" id="cf-weekdays-row"><label>On weekdays</label>
+        <div class="weekday-picker" id="cf-weekdays">
+          <button data-wd="0">S</button><button data-wd="1">M</button>
+          <button data-wd="2">T</button><button data-wd="3">W</button>
+          <button data-wd="4">T</button><button data-wd="5">F</button>
+          <button data-wd="6">S</button>
+        </div>
+      </div>
+      <div class="field hide" id="cf-end-row"><label>Ends</label><input type="date" id="cf-end"></div>
+      <div class="field"><label>Reminder</label>
+        <select id="cf-reminder">
+          <option value="">No reminder</option>
+          <option value="0">On the day</option>
+          <option value="1">1 day before</option>
+          <option value="3">3 days before</option>
+          <option value="7">1 week before</option>
+        </select>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn danger hide" id="chore-modal-delete">Delete</button>
+      <button class="btn ghost" id="chore-modal-cancel">Cancel</button>
+      <button class="btn primary" id="chore-modal-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Habit modal -->
+<div class="modal-bg" id="modal-habit-bg">
+  <div class="modal">
+    <div class="m-head"><h3 id="habit-modal-title">New habit</h3><button class="icon-btn" id="habit-modal-close">×</button></div>
+    <div class="m-body">
+      <div class="field"><label>Name</label><input type="text" id="hf-name" placeholder="e.g. Drink water"></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn danger hide" id="habit-modal-delete">Delete</button>
+      <button class="btn ghost" id="habit-modal-cancel">Cancel</button>
+      <button class="btn primary" id="habit-modal-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sync settings modal -->
+<div class="modal-bg" id="modal-sync-bg">
+  <div class="modal">
+    <div class="m-head"><h3>Sync settings</h3><button class="icon-btn" id="sync-modal-close">×</button></div>
+    <div class="m-body">
+      <p class="muted" style="font-size:13px;margin-bottom:12px;">Your journal is stored as a private GitHub Gist. Enter a personal access token with <code>gist</code> scope. Each device where you paste the same token + gist ID will stay in sync.</p>
+      <ol style="padding-left:20px;font-size:13px;color:var(--ink-soft);margin-bottom:14px;line-height:1.7;">
+        <li>Open <a href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noopener">github.com/settings/tokens</a> → <b>Generate new token (fine-grained)</b>.</li>
+        <li>Set an expiration and give it <b>Account permissions → Gists → Read and write</b>.</li>
+        <li>Copy the token (starts with <code>github_pat_…</code>) and paste below.</li>
+        <li>Click <b>Create new gist</b> on the first device. On your next device, paste the same token and the Gist ID that appears.</li>
+      </ol>
+      <div class="field"><label>GitHub token</label>
+        <input type="password" id="sf-pat" placeholder="github_pat_..." autocomplete="off">
+      </div>
+      <div class="field"><label>Gist ID</label>
+        <input type="text" id="sf-gist" placeholder="(empty = create new)" autocomplete="off">
+      </div>
+      <div id="sync-status-info" style="font-size:12px;color:var(--ink-soft);margin-top:10px;"></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn danger hide" id="sync-disconnect">Disconnect</button>
+      <button class="btn" id="sync-export">Export JSON</button>
+      <button class="btn ghost" id="sync-modal-cancel">Close</button>
+      <button class="btn primary" id="sync-save">Save & sync</button>
+    </div>
+  </div>
+</div>
+
+<!-- Conflict modal -->
+<div class="modal-bg" id="modal-conflict-bg">
+  <div class="modal" style="width:640px;">
+    <div class="m-head"><h3>Sync conflict</h3><button class="icon-btn" id="conflict-modal-close">×</button></div>
+    <div class="m-body">
+      <p class="muted" style="font-size:13px;margin-bottom:12px;">
+        These items were edited on more than one device. Pick which version to keep for each, then press <b>Apply</b>.
+      </p>
+      <div class="conflict-list" id="conflict-list"></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn" id="conflict-all-local">Keep all local</button>
+      <button class="btn" id="conflict-all-remote">Keep all remote</button>
+      <button class="btn primary" id="conflict-apply">Apply</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   CONSTANTS
+   ════════════════════════════════════════════════════════ */
+const K_CHORES    = "chores_v1";
+const K_HABITS    = "habits_v1";
+const K_HABIT_LOG = "habit_log_v1";
+const K_ENTRIES   = "entries_v1";
+const K_REVIEWS   = "reviews_v1";
+const K_DISMISSED = "chores_dismissed_v1";
+const K_SYNC      = "sync_v1";
+const K_SYNC_NUDGED = "sync_nudged_v1";
+
+const DOW_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const MOOD_EMOJI = ["","😞","😕","😐","🙂","😄"];
+
+/* ════════════════════════════════════════════════════════
+   DATE UTILITIES
+   ════════════════════════════════════════════════════════ */
+function toISO(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function fromISO(s){ const[y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); }
+function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function addMonths(d,n){ const r=new Date(d); r.setMonth(r.getMonth()+n); return r; }
+function addYears(d,n){ const r=new Date(d); r.setFullYear(r.getFullYear()+n); return r; }
+function startOfWeek(d){ return addDays(d,-d.getDay()); }
+function daysBetween(a,b){
+  const ua=Date.UTC(a.getFullYear(),a.getMonth(),a.getDate());
+  const ub=Date.UTC(b.getFullYear(),b.getMonth(),b.getDate());
+  return Math.round((ub-ua)/86400000);
+}
+function fmtDateLong(d){ return `${DOW_SHORT[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; }
+function fmtTime(t){ if(!t) return ""; const[h,m]=t.split(":").map(Number); const hh=h%12===0?12:h%12; return `${hh}:${String(m).padStart(2,"0")} ${h<12?"AM":"PM"}`; }
+function monthKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; }
+function weekKey(d){ return `W${toISO(startOfWeek(d))}`; }
+function nowISO(){ return new Date().toISOString(); }
+
+/* ════════════════════════════════════════════════════════
+   PERSISTENCE
+   ════════════════════════════════════════════════════════ */
+function loadJSON(k, fb){ try{ const v=JSON.parse(localStorage.getItem(k)); return v==null?fb:v; } catch{ return fb; } }
+function saveJSON(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+
+function loadChores()   { return loadJSON(K_CHORES, []); }
+function saveChores(v)  { saveJSON(K_CHORES, v); markDirty(); }
+function loadHabits()   { return loadJSON(K_HABITS, []); }
+function saveHabits(v)  { saveJSON(K_HABITS, v); markDirty(); }
+function loadHabitLog() { return loadJSON(K_HABIT_LOG, {}); }
+function saveHabitLog(v){ saveJSON(K_HABIT_LOG, v); markDirty(); }
+function loadEntries()  { return loadJSON(K_ENTRIES, {}); }
+function saveEntries(v) { saveJSON(K_ENTRIES, v); markDirty(); }
+function loadReviews()  { return loadJSON(K_REVIEWS, {}); }
+function saveReviews(v) { saveJSON(K_REVIEWS, v); markDirty(); }
+function loadDismissed(){ return loadJSON(K_DISMISSED, {}); }
+function saveDismissed(v){ saveJSON(K_DISMISSED, v); }
+function loadSyncConf() { return loadJSON(K_SYNC, null); }
+function saveSyncConf(v){ saveJSON(K_SYNC, v); }
+
+/* stamp _updatedAt on whatever we modify */
+function stamp(o){ if (o && typeof o === "object") o._updatedAt = nowISO(); return o; }
+
+/* ════════════════════════════════════════════════════════
+   RECURRENCE
+   ════════════════════════════════════════════════════════ */
+function expandOccurrences(chore, rangeStart, rangeEnd) {
+  const results = [];
+  const start = fromISO(chore.startDate);
+  if (start > rangeEnd) return results;
+  const end = chore.recurrence && chore.recurrence.endDate ? fromISO(chore.recurrence.endDate) : null;
+  if (!chore.recurrence || chore.recurrence.type === "none") {
+    if (start >= rangeStart && start <= rangeEnd) results.push(toISO(start));
+    return results;
+  }
+  const r = chore.recurrence;
+  const interval = Math.max(1, r.interval || 1);
+  const stop = end && end < rangeEnd ? end : rangeEnd;
+  if (r.type === "daily") {
+    let d = new Date(start);
+    while (d <= stop) { if (d >= rangeStart) results.push(toISO(d)); d = addDays(d, interval); }
+  } else if (r.type === "weekly") {
+    const wds = (r.weekdays && r.weekdays.length) ? r.weekdays : [start.getDay()];
+    let ws = startOfWeek(start);
+    while (ws <= stop) {
+      for (const wd of wds) { const d = addDays(ws, wd); if (d >= start && d >= rangeStart && d <= stop) results.push(toISO(d)); }
+      ws = addDays(ws, 7*interval);
+    }
+    results.sort();
+  } else if (r.type === "monthly") {
+    let d = new Date(start);
+    while (d <= stop) { if (d >= rangeStart) results.push(toISO(d)); d = addMonths(d, interval); }
+  } else if (r.type === "yearly") {
+    let d = new Date(start);
+    while (d <= stop) { if (d >= rangeStart) results.push(toISO(d)); d = addYears(d, interval); }
+  }
+  return results;
+}
+function occurrencesOnDate(iso) {
+  const d = fromISO(iso);
+  const list = [];
+  for (const c of state.chores) if (expandOccurrences(c, d, d).length) list.push({ chore: c, dateISO: iso });
+  list.sort((a,b)=>(a.chore.time||"").localeCompare(b.chore.time||""));
+  return list;
+}
+function dueSoonReminders(today) {
+  const out = []; const dismissed = loadDismissed();
+  const windowEnd = addDays(today, 14);
+  for (const c of state.chores) {
+    if (c.reminderDaysBefore == null) continue;
+    for (const iso of expandOccurrences(c, today, windowEnd)) {
+      const diff = daysBetween(today, fromISO(iso));
+      if (diff < 0 || diff > c.reminderDaysBefore) continue;
+      if (c.completed && c.completed[iso]) continue;
+      if (dismissed[`${c.id}|${iso}`]) continue;
+      out.push({ chore: c, dateISO: iso, daysUntil: diff });
+    }
+  }
+  out.sort((a,b)=>a.daysUntil-b.daysUntil || a.chore.title.localeCompare(b.chore.title));
+  return out;
+}
+function recurrenceSummary(r){
+  if (!r || r.type==="none") return "";
+  const n = r.interval || 1;
+  if (r.type==="daily")   return n===1?"Daily":`Every ${n}d`;
+  if (r.type==="weekly")  { const lbl = r.weekdays && r.weekdays.length && r.weekdays.length<7 ? r.weekdays.map(d=>"SMTWTFS"[d]).join("") : ""; return (n===1?"Weekly":`Every ${n}w`) + (lbl?` (${lbl})`:""); }
+  if (r.type==="monthly") return n===1?"Monthly":`Every ${n}m`;
+  if (r.type==="yearly")  return n===1?"Yearly":`Every ${n}y`;
+  return "";
+}
+
+/* ════════════════════════════════════════════════════════
+   HABITS / ENTRIES
+   ════════════════════════════════════════════════════════ */
+function habitDone(id, iso){ return !!state.habitLog[`${id}|${iso}`]; }
+function toggleHabit(id, iso){
+  const k = `${id}|${iso}`;
+  if (state.habitLog[k]) delete state.habitLog[k]; else state.habitLog[k] = true;
+  state.habitLog._updatedAt = nowISO();
+  saveHabitLog(state.habitLog);
+}
+function habitStreak(id){
+  let d = new Date(); d.setHours(0,0,0,0); let s = 0;
+  if (!habitDone(id, toISO(d))) d = addDays(d, -1);
+  while (habitDone(id, toISO(d))) { s++; d = addDays(d, -1); }
+  return s;
+}
+function emptyEntry(){
+  return {
+    gratitude: ["","",""],
+    intentions: ["","",""],
+    priorities: ["","",""],
+    affirmation: "",
+    schedule: {},
+    mood: null,
+    moodNote: "",
+    exercise: "",
+    wins: "",
+    lessons: "",
+    couldBeBetter: "",
+    notes: "",
+  };
+}
+function getEntry(iso){
+  const e = state.entries[iso];
+  if (!e) return emptyEntry();
+  const base = emptyEntry();
+  for (const k of ["gratitude","intentions","priorities"]){ if (!Array.isArray(e[k])) e[k] = base[k]; while (e[k].length<3) e[k].push(""); }
+  return { ...base, ...e };
+}
+function saveEntry(iso, e){
+  if (isEmptyEntry(e)) delete state.entries[iso];
+  else { stamp(e); state.entries[iso] = e; }
+  saveEntries(state.entries);
+}
+function isEmptyEntry(e){
+  if (!e) return true;
+  const txt = [...e.gratitude,...e.intentions,...e.priorities, e.affirmation, e.exercise, e.wins, e.lessons, e.couldBeBetter, e.notes, e.moodNote].join("").trim();
+  const hasSched = Object.values(e.schedule||{}).some(v => v && v.trim());
+  return !txt && !hasSched && e.mood == null;
+}
+
+/* ════════════════════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════════════════════ */
+const state = {
+  view: "dashboard",
+  cursor: new Date(),
+  todayCursor: new Date(),
+  calSubView: "month",
+  chores: loadChores(),
+  habits: loadHabits(),
+  habitLog: loadHabitLog(),
+  entries: loadEntries(),
+  reviews: loadReviews(),
+  editingChoreId: null,
+  editingChoreWeekdays: [],
+  editingHabitId: null,
+  sync: loadSyncConf(),       // { pat, gistId, lastSyncedAt }
+  syncStatus: "idle",         // idle | syncing | synced | dirty | error | offline | setup
+  syncError: null,
+  conflictQueue: null,        // [{ type, id, local, remote, resolution }]
+  pendingRemote: null,        // remote snapshot pending apply after conflicts
+};
+
+/* ════════════════════════════════════════════════════════
+   RENDER
+   ════════════════════════════════════════════════════════ */
+function render(){
+  renderReminderBanner();
+  renderSyncNudge();
+  renderSyncButton();
+  document.querySelectorAll("#views button").forEach(b => b.classList.toggle("active", b.dataset.view === state.view));
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+  if      (state.view === "dashboard") main.appendChild(renderDashboard());
+  else if (state.view === "today")     main.appendChild(renderToday());
+  else if (state.view === "calendar")  main.appendChild(renderCalendar());
+  else if (state.view === "habits")    main.appendChild(renderHabits());
+  else if (state.view === "reviews")   main.appendChild(renderReviews());
+}
+
+/* Sync button/status */
+function renderSyncButton(){
+  const btn = document.getElementById("sync-btn");
+  btn.className = "btn " + state.syncStatus;
+  const label = btn.querySelector(".sync-label");
+  if (!state.sync)              { label.textContent = "Set up sync"; btn.classList.add("setup"); }
+  else if (state.syncStatus === "syncing") label.textContent = "Syncing…";
+  else if (state.syncStatus === "synced")  label.textContent = "Synced";
+  else if (state.syncStatus === "dirty")   label.textContent = "Unsaved";
+  else if (state.syncStatus === "error")   label.textContent = "Sync error";
+  else if (state.syncStatus === "offline") label.textContent = "Offline";
+  else label.textContent = "Sync";
+}
+function renderSyncNudge(){
+  const n = document.getElementById("sync-nudge");
+  const shouldShow = !state.sync && !localStorage.getItem(K_SYNC_NUDGED);
+  n.classList.toggle("show", shouldShow);
+}
+
+/* Reminder banner */
+function renderReminderBanner(){
+  const banner = document.getElementById("reminder-banner");
+  banner.innerHTML = "";
+  const today = new Date(); today.setHours(0,0,0,0);
+  const reminders = dueSoonReminders(today);
+  if (!reminders.length) { banner.classList.remove("show"); return; }
+  banner.classList.add("show");
+  for (const { chore, dateISO, daysUntil } of reminders) {
+    const row = el("div", "rb-row");
+    row.appendChild(el("span","","🔔"));
+    row.appendChild(el("span","rb-title", chore.title));
+    const when = daysUntil===0?"Today":daysUntil===1?"Tomorrow":`In ${daysUntil} days`;
+    row.appendChild(el("span","", `${when} · ${fmtDateLong(fromISO(dateISO))}${chore.time?" at "+fmtTime(chore.time):""}`));
+    const actions = el("span","rb-actions");
+    const done = el("button","","Mark done");
+    done.onclick = () => toggleChoreComplete(chore.id, dateISO, true);
+    actions.appendChild(done);
+    const dismiss = el("button","","Dismiss");
+    dismiss.onclick = () => { const d=loadDismissed(); d[`${chore.id}|${dateISO}`]=true; saveDismissed(d); renderReminderBanner(); };
+    actions.appendChild(dismiss);
+    row.appendChild(actions);
+    banner.appendChild(row);
+  }
+}
+
+/* ───────── Dashboard ───────── */
+function renderDashboard(){
+  const wrap = el("div");
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayISO = toISO(today);
+
+  const head = el("div","page-head");
+  head.appendChild(el("h2","", fmtDateLong(today)));
+  const go = el("button","btn primary","Open today →");
+  go.onclick = ()=>{ state.view="today"; state.todayCursor=new Date(); render(); };
+  head.appendChild(go);
+  wrap.appendChild(head);
+
+  const grid = el("div","grid-2");
+
+  const entry = getEntry(todayISO);
+  const gist = el("div","card");
+  gist.appendChild(h3("Today at a glance"));
+  const prs = entry.priorities.filter(s=>s.trim());
+  if (prs.length) {
+    const lbl = el("div","muted","Top priorities"); lbl.style.cssText="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;";
+    gist.appendChild(lbl);
+    const ul = el("ol"); ul.style.cssText="padding-left:18px;margin-bottom:10px;";
+    prs.forEach(p=>{ const li = el("li","",p); li.style.marginBottom="2px"; ul.appendChild(li); });
+    gist.appendChild(ul);
+  } else {
+    const em = el("div","muted","No priorities set yet. Open today's page to plan.");
+    em.style.cssText="font-size:13px;margin-bottom:10px;"; gist.appendChild(em);
+  }
+  if (entry.mood){ const m=el("div","",`Mood: ${MOOD_EMOJI[entry.mood]}`); m.style.cssText="font-size:14px;margin-top:4px;"; gist.appendChild(m); }
+  const todayChores = occurrencesOnDate(todayISO);
+  if (todayChores.length){
+    const ct = el("div","muted",`Chores due today (${todayChores.length})`);
+    ct.style.cssText="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin:10px 0 4px;";
+    gist.appendChild(ct);
+    todayChores.forEach(o=>{ const r=el("div","","• "+o.chore.title); r.style.cssText="font-size:13px;padding-left:4px;"; if(o.chore.completed&&o.chore.completed[todayISO]){r.style.textDecoration="line-through";r.style.color="var(--ink-faint)";} gist.appendChild(r); });
+  }
+  grid.appendChild(gist);
+
+  const habitsCard = el("div","card");
+  habitsCard.appendChild(h3("Habit streaks"));
+  const active = state.habits.filter(h=>!h.archivedAt);
+  if (!active.length){
+    const ep = el("div","muted","No habits yet. ");
+    ep.style.cssText="font-size:13px;";
+    const lk = el("button","btn ghost","Add some →"); lk.style.fontSize="13px"; lk.onclick=()=>{ state.view="habits"; render(); };
+    ep.appendChild(lk); habitsCard.appendChild(ep);
+  } else {
+    const strip = el("div","habit-strip");
+    active.forEach(h=>{
+      const p = el("div","habit-pill");
+      p.appendChild(el("span","",h.name));
+      const s = habitStreak(h.id);
+      p.appendChild(el("span","streak"+(s===0?" zero":""),`🔥 ${s}`));
+      strip.appendChild(p);
+    });
+    habitsCard.appendChild(strip);
+    const m = el("button","btn ghost","Manage habits →"); m.style.cssText="font-size:12px;margin-top:12px;"; m.onclick=()=>{ state.view="habits"; render(); };
+    habitsCard.appendChild(m);
+  }
+  grid.appendChild(habitsCard);
+  wrap.appendChild(grid);
+
+  const row2 = el("div","grid-2"); row2.style.marginTop="14px";
+  const miniWrap = el("div","card");
+  miniWrap.appendChild(h3("This month"));
+  miniWrap.appendChild(renderMiniMonth(today));
+  row2.appendChild(miniWrap);
+
+  const up = el("div","card");
+  up.appendChild(h3("Upcoming · next 7 days"));
+  const upcoming = [];
+  for (let i=0;i<7;i++){ const d=addDays(today,i); const iso=toISO(d); occurrencesOnDate(iso).forEach(o=>upcoming.push({...o, dateISO:iso})); }
+  if (!upcoming.length) up.appendChild(el("div","empty-state","Nothing due in the next week. Nice."));
+  else upcoming.forEach(o=>{
+    const r = el("div"); r.style.cssText="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-soft);";
+    const d = el("span","muted", DOW_SHORT[fromISO(o.dateISO).getDay()]+" · "+(o.dateISO===todayISO?"Today":fromISO(o.dateISO).getDate()));
+    d.style.cssText="font-size:12px;min-width:80px;"; r.appendChild(d);
+    const t = el("span","",o.chore.title); t.style.flex="1";
+    if (o.chore.completed && o.chore.completed[o.dateISO]){ t.style.textDecoration="line-through"; t.style.color="var(--ink-faint)"; }
+    r.appendChild(t);
+    if (o.chore.time){ const tm=el("span","muted",fmtTime(o.chore.time)); tm.style.fontSize="12px"; r.appendChild(tm); }
+    up.appendChild(r);
+  });
+  row2.appendChild(up);
+  wrap.appendChild(row2);
+  return wrap;
+}
+
+function renderMiniMonth(anchor){
+  const wrap = el("div","month-grid mini-cal");
+  for (const n of ["S","M","T","W","T","F","S"]) wrap.appendChild(el("div","dow",n));
+  const first = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+  const gridStart = startOfWeek(first);
+  const todayISO = toISO(new Date());
+  for (let i=0;i<42;i++){
+    const d = addDays(gridStart,i); const iso = toISO(d);
+    const cell = el("div","day-cell" + (d.getMonth()!==anchor.getMonth()?" other-month":"") + (iso===todayISO?" today":""));
+    const num = el("div","day-num"); num.innerHTML = `<span class="num-inner">${d.getDate()}</span>`;
+    cell.appendChild(num);
+    const markers = el("div","mini-markers");
+    if (state.chores.some(c=>expandOccurrences(c,d,d).length)){ const dot=el("span","mini-dot"); dot.style.background="var(--accent)"; markers.appendChild(dot); }
+    const e = state.entries[iso];
+    if (e && e.mood){ const dot=el("span","mini-dot"); dot.style.background=`var(--mood-${e.mood})`; markers.appendChild(dot); }
+    cell.appendChild(markers);
+    cell.onclick = ()=>{ state.view="today"; state.todayCursor=d; render(); };
+    wrap.appendChild(cell);
+  }
+  return wrap;
+}
+
+/* ───────── Today ───────── */
+function renderToday(){
+  const wrap = el("div");
+  const d = new Date(state.todayCursor); d.setHours(0,0,0,0);
+  const iso = toISO(d);
+  const entry = getEntry(iso);
+  const todayISO = toISO(new Date());
+
+  const head = el("div","today-head");
+  const prev = el("button","icon-btn","‹"); prev.onclick = ()=>{ state.todayCursor = addDays(state.todayCursor,-1); render(); };
+  head.appendChild(prev);
+  const label = el("div"); label.style.flex="1";
+  const dateLine = el("div","date-label",`${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`); dateLine.style.textAlign="center";
+  const dowLine = el("div","dow-label", DOW_SHORT[d.getDay()].toUpperCase()+(iso===todayISO?" · TODAY":"")); dowLine.style.textAlign="center";
+  label.appendChild(dateLine); label.appendChild(dowLine); head.appendChild(label);
+  const todayBtn = el("button","btn","Today"); todayBtn.onclick = ()=>{ state.todayCursor=new Date(); render(); };
+  head.appendChild(todayBtn);
+  const next = el("button","icon-btn","›"); next.onclick = ()=>{ state.todayCursor = addDays(state.todayCursor,1); render(); };
+  head.appendChild(next);
+  wrap.appendChild(head);
+
+  const persist = () => saveEntry(iso, entry);
+
+  const row1 = el("div","grid-2");
+
+  const morning = el("div","card");
+  morning.appendChild(h3("☀ Morning"));
+  morning.appendChild(numList("I am grateful for…", entry.gratitude, v=>{ entry.gratitude=v; persist(); }));
+  morning.appendChild(numList("What would make today great?", entry.intentions, v=>{ entry.intentions=v; persist(); }));
+  const affF = el("div","field"); affF.appendChild(labelEl("Daily affirmation"));
+  const aff = el("input"); aff.type="text"; aff.className="auto-input"; aff.value=entry.affirmation; aff.placeholder="I am…";
+  aff.oninput = ()=>{ entry.affirmation=aff.value; persist(); };
+  affF.appendChild(aff); morning.appendChild(affF);
+  row1.appendChild(morning);
+
+  const planner = el("div","card");
+  planner.appendChild(h3("Plan"));
+  planner.appendChild(numList("Top 3 priorities", entry.priorities, v=>{ entry.priorities=v; persist(); }));
+
+  const hl = el("div"); hl.style.cssText="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 6px;"; hl.textContent="Habits"; planner.appendChild(hl);
+  const hList = el("div","habit-check-list");
+  const activeHabits = state.habits.filter(h=>!h.archivedAt);
+  if (!activeHabits.length){
+    const ep = el("div","habit-empty","No habits defined. ");
+    const add = el("button","btn ghost","Add one →"); add.style.cssText="padding:2px 8px;font-size:12px;"; add.onclick=()=>openHabitModal(null);
+    ep.appendChild(add); hList.appendChild(ep);
+  } else {
+    activeHabits.forEach(h=>{
+      const r = el("div","habit-check-row"); if (habitDone(h.id,iso)) r.classList.add("done");
+      const box = el("div","check-box"); if (habitDone(h.id,iso)) box.textContent="✓";
+      r.appendChild(box);
+      r.appendChild(el("span","label",h.name));
+      r.appendChild(el("span","streak-badge",`🔥 ${habitStreak(h.id)}`));
+      r.onclick = ()=>{ toggleHabit(h.id,iso); render(); };
+      hList.appendChild(r);
+    });
+  }
+  planner.appendChild(hList);
+
+  const ml = el("div"); ml.style.cssText="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin:14px 0 6px;"; ml.textContent="Mood"; planner.appendChild(ml);
+  const moodRow = el("div","mood-picker");
+  for (let i=1;i<=5;i++){
+    const b = el("button","mood-btn"+(entry.mood===i?" active":""), MOOD_EMOJI[i]);
+    b.onclick = ()=>{ entry.mood = entry.mood===i?null:i; persist(); render(); };
+    moodRow.appendChild(b);
+  }
+  planner.appendChild(moodRow);
+
+  const exF = el("div","field"); exF.style.marginTop="12px"; exF.appendChild(labelEl("Exercise / movement"));
+  const ex = el("input"); ex.type="text"; ex.className="auto-input"; ex.value=entry.exercise; ex.placeholder="20 min walk, etc.";
+  ex.oninput = ()=>{ entry.exercise=ex.value; persist(); };
+  exF.appendChild(ex); planner.appendChild(exF);
+  row1.appendChild(planner);
+  wrap.appendChild(row1);
+
+  const sched = el("div","card"); sched.style.marginTop="14px";
+  sched.appendChild(h3("Schedule"));
+  const sg = el("div","schedule-grid");
+  for (let h=6; h<=22; h++){
+    sg.appendChild(el("div","hr",`${h%12===0?12:h%12}${h<12?" AM":" PM"}`));
+    const sl = el("div","sl");
+    const pins = occurrencesOnDate(iso).filter(o => o.chore.time && Number(o.chore.time.split(":")[0])===h);
+    pins.forEach(o=>{ const p=el("span","chore-pin",o.chore.title); p.onclick=()=>openChoreModal(o.chore.id); sl.appendChild(p); });
+    const inp = el("input"); inp.type="text"; inp.className="auto-input"; inp.value=entry.schedule[String(h)]||""; inp.placeholder="…";
+    inp.oninput = ()=>{ entry.schedule[String(h)]=inp.value; persist(); };
+    sl.appendChild(inp);
+    sg.appendChild(sl);
+  }
+  sched.appendChild(sg);
+  wrap.appendChild(sched);
+
+  const choresCard = el("div","card"); choresCard.style.marginTop="14px";
+  const chHeader = h3("Chores for this day"); chHeader.appendChild(el("span","count",`(${occurrencesOnDate(iso).length})`));
+  const addCh = el("button","btn ghost"); addCh.style.cssText="margin-left:auto;font-size:12px;"; addCh.textContent="+ Add"; addCh.onclick=()=>openChoreModal(null, iso); chHeader.appendChild(addCh);
+  choresCard.appendChild(chHeader);
+  const occ = occurrencesOnDate(iso);
+  if (!occ.length) choresCard.appendChild(el("div","empty-state","No chores for this day."));
+  else {
+    const list = el("div","today-chores");
+    occ.forEach(o=>{
+      const r = el("div","today-chore-row");
+      const done = !!(o.chore.completed && o.chore.completed[iso]);
+      if (done) r.classList.add("done");
+      const cb = el("input"); cb.type="checkbox"; cb.checked=done;
+      cb.onchange = ()=>toggleChoreComplete(o.chore.id, iso, cb.checked);
+      r.appendChild(cb);
+      r.appendChild(el("span","tt", o.chore.time ? fmtTime(o.chore.time) : "All day"));
+      const tt = el("span","ti", o.chore.title); tt.style.cursor="pointer"; tt.onclick=()=>openChoreModal(o.chore.id);
+      r.appendChild(tt);
+      if (o.chore.recurrence && o.chore.recurrence.type!=="none") r.appendChild(el("span","ag-recur", recurrenceSummary(o.chore.recurrence)));
+      list.appendChild(r);
+    });
+    choresCard.appendChild(list);
+  }
+  wrap.appendChild(choresCard);
+
+  const evening = el("div","card"); evening.style.marginTop="14px";
+  evening.appendChild(h3("🌙 Evening reflection"));
+  const ev = el("div","grid-3");
+  ev.appendChild(textarea("Wins today", entry.wins, v=>{ entry.wins=v; persist(); }));
+  ev.appendChild(textarea("Lessons learned", entry.lessons, v=>{ entry.lessons=v; persist(); }));
+  ev.appendChild(textarea("Could've been better", entry.couldBeBetter, v=>{ entry.couldBeBetter=v; persist(); }));
+  evening.appendChild(ev);
+  wrap.appendChild(evening);
+
+  const notesCard = el("div","card"); notesCard.style.marginTop="14px";
+  notesCard.appendChild(h3("Free-form notes"));
+  const ta = el("textarea"); ta.style.cssText="width:100%;min-height:90px;border:none;background:transparent;font-family:inherit;font-size:16px;resize:vertical;outline:none;";
+  ta.value = entry.notes; ta.placeholder="Anything else on your mind…";
+  ta.oninput = ()=>{ entry.notes=ta.value; persist(); };
+  notesCard.appendChild(ta);
+  wrap.appendChild(notesCard);
+  return wrap;
+}
+
+function numList(title, values, onChange){
+  const f = el("div","field"); f.appendChild(labelEl(title));
+  const list = el("div","num-list");
+  values.forEach((v,i)=>{
+    const r = el("div","num-row");
+    r.appendChild(el("span","n",String(i+1)));
+    const inp = el("input"); inp.type="text"; inp.className="auto-input"; inp.value=v; inp.placeholder="…";
+    inp.oninput = ()=>{ values[i] = inp.value; onChange(values); };
+    r.appendChild(inp); list.appendChild(r);
+  });
+  f.appendChild(list); return f;
+}
+function textarea(title, v, onChange){
+  const f = el("div","field"); f.appendChild(labelEl(title));
+  const ta = el("textarea"); ta.value = v; ta.oninput=()=>onChange(ta.value);
+  f.appendChild(ta); return f;
+}
+
+/* ───────── Calendar ───────── */
+function renderCalendar(){
+  const wrap = el("div");
+  const bar = el("div","page-head");
+  const title = el("h2");
+  const subSwitch = el("div");
+  subSwitch.style.cssText = "display:inline-flex;gap:2px;background:var(--accent-bg);padding:3px;border-radius:999px;";
+  for (const s of ["month","week","agenda"]){
+    const b = el("button",""); b.textContent = s[0].toUpperCase()+s.slice(1);
+    b.style.cssText = "background:transparent;border:none;padding:7px 14px;font-size:13px;color:var(--ink-soft);cursor:pointer;border-radius:999px;font-weight:600;";
+    if (state.calSubView === s){ b.style.background="var(--paper)"; b.style.color="var(--accent-deep)"; }
+    b.onclick = ()=>{ state.calSubView = s; render(); };
+    subSwitch.appendChild(b);
+  }
+  const prev = el("button","icon-btn","‹"); prev.onclick = ()=>{ moveCursor(-1); render(); };
+  const today = el("button","btn","Today"); today.onclick = ()=>{ state.cursor=new Date(); render(); };
+  const next = el("button","icon-btn","›"); next.onclick = ()=>{ moveCursor(1); render(); };
+
+  if (state.calSubView === "month") title.textContent = `${MONTHS[state.cursor.getMonth()]} ${state.cursor.getFullYear()}`;
+  else if (state.calSubView === "week") {
+    const ws = startOfWeek(state.cursor), we = addDays(ws,6);
+    title.textContent = ws.getMonth()===we.getMonth()
+      ? `${MONTHS[ws.getMonth()]} ${ws.getDate()}–${we.getDate()}, ${ws.getFullYear()}`
+      : `${MONTHS[ws.getMonth()]} ${ws.getDate()} – ${MONTHS[we.getMonth()]} ${we.getDate()}, ${we.getFullYear()}`;
+  } else title.textContent = "Upcoming · next 60 days";
+
+  bar.appendChild(title); bar.appendChild(prev); bar.appendChild(today); bar.appendChild(next); bar.appendChild(subSwitch);
+  wrap.appendChild(bar);
+
+  if (state.calSubView === "month") wrap.appendChild(renderMonthGrid());
+  else if (state.calSubView === "week") wrap.appendChild(renderWeekGrid());
+  else wrap.appendChild(renderAgenda());
+  return wrap;
+}
+function moveCursor(dir){
+  if (state.calSubView === "month") state.cursor = addMonths(state.cursor, dir);
+  else if (state.calSubView === "week") state.cursor = addDays(state.cursor, 7*dir);
+  else state.cursor = addDays(state.cursor, 14*dir);
+}
+function renderMonthGrid(){
+  const wrap = el("div","month-grid");
+  for (const n of ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]) wrap.appendChild(el("div","dow",n));
+  const first = new Date(state.cursor.getFullYear(), state.cursor.getMonth(), 1);
+  const gridStart = startOfWeek(first); const todayISO = toISO(new Date());
+  for (let i=0;i<42;i++){
+    const d = addDays(gridStart,i); const iso=toISO(d);
+    const cell = el("div","day-cell");
+    if (d.getMonth()!==state.cursor.getMonth()) cell.classList.add("other-month");
+    if (iso===todayISO) cell.classList.add("today");
+    const num = el("div","day-num");
+    num.innerHTML = `<span><span class="num-inner">${d.getDate()}</span></span>`;
+    const e = state.entries[iso];
+    if (e && e.mood){ const m=el("span","mood-pill"); m.style.background=`var(--mood-${e.mood})`; m.title=`Mood: ${MOOD_EMOJI[e.mood]}`; num.appendChild(m); }
+    cell.appendChild(num);
+    const occ = occurrencesOnDate(iso);
+    occ.slice(0,3).forEach(o => cell.appendChild(makeChip(o.chore, iso)));
+    if (occ.length>3) cell.appendChild(el("div","more-link", `+${occ.length-3} more`));
+    cell.onclick = ()=>{ state.todayCursor=d; state.view="today"; render(); };
+    wrap.appendChild(cell);
+  }
+  return wrap;
+}
+function chipClass(iso, c){ const t=toISO(new Date()); if (c.completed && c.completed[iso]) return "done"; if (iso<t) return "overdue"; if (iso===t) return "today-chip"; return "upcoming"; }
+function makeChip(c, iso){
+  const chip = el("div","chip "+chipClass(iso,c));
+  chip.appendChild(el("span","dot"));
+  chip.appendChild(el("span","", c.time?`${fmtTime(c.time)} ${c.title}`:c.title));
+  chip.onclick = (e)=>{ e.stopPropagation(); openChoreModal(c.id); };
+  return chip;
+}
+function renderWeekGrid(){
+  const wrap = el("div","week-grid"); const ws = startOfWeek(state.cursor); const todayISO = toISO(new Date());
+  for (let i=0;i<7;i++){
+    const d = addDays(ws,i); const iso = toISO(d);
+    const col = el("div","week-col"); if (iso===todayISO) col.classList.add("today");
+    const head = el("div","week-head");
+    head.appendChild(el("div","wh-label", DOW_SHORT[d.getDay()].toUpperCase()));
+    head.appendChild(el("div","wh-day", String(d.getDate())));
+    col.appendChild(head);
+    const occ = occurrencesOnDate(iso);
+    if (!occ.length){ const em=el("div"); em.style.cssText="color:var(--ink-faint);font-size:11px;text-align:center;margin-top:12px;"; em.textContent="—"; col.appendChild(em); }
+    else occ.forEach(o=>col.appendChild(makeChip(o.chore,iso)));
+    col.onclick = (e)=>{ if (e.target.closest(".chip")) return; state.todayCursor=d; state.view="today"; render(); };
+    wrap.appendChild(col);
+  }
+  return wrap;
+}
+function renderAgenda(){
+  const wrap = el("div","agenda");
+  const start = new Date(state.cursor); start.setHours(0,0,0,0); const end = addDays(start,60);
+  const byDate = {};
+  for (const c of state.chores) for (const iso of expandOccurrences(c,start,end)) (byDate[iso]=byDate[iso]||[]).push(c);
+  const dates = Object.keys(byDate).sort();
+  if (!dates.length){ wrap.appendChild(el("div","empty-state","No chores in the next 60 days.")); return wrap; }
+  for (const iso of dates){
+    wrap.appendChild(el("div","ag-group-head", fmtDateLong(fromISO(iso))));
+    byDate[iso].sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+    for (const c of byDate[iso]){
+      const row = el("div","ag-item");
+      const cb = el("input"); cb.type="checkbox"; cb.checked = !!(c.completed && c.completed[iso]);
+      cb.onchange = ()=>toggleChoreComplete(c.id, iso, cb.checked);
+      row.appendChild(cb);
+      row.appendChild(el("span","ag-time", c.time?fmtTime(c.time):"All day"));
+      const tt = el("span","ag-title"+(cb.checked?" done":""), c.title); tt.style.cursor="pointer"; tt.onclick=()=>openChoreModal(c.id);
+      row.appendChild(tt);
+      if (c.recurrence && c.recurrence.type!=="none") row.appendChild(el("span","ag-recur", recurrenceSummary(c.recurrence)));
+      wrap.appendChild(row);
+    }
+  }
+  return wrap;
+}
+
+/* ───────── Habits ───────── */
+function renderHabits(){
+  const wrap = el("div");
+  const head = el("div","page-head");
+  head.appendChild(el("h2","","Habits"));
+  const add = el("button","btn primary","+ New habit"); add.onclick = ()=>openHabitModal(null); head.appendChild(add);
+  wrap.appendChild(head);
+
+  const active = state.habits.filter(h=>!h.archivedAt);
+  if (!active.length){
+    const c = el("div","card"); c.appendChild(el("div","empty-state","No habits yet. Add one to start tracking streaks."));
+    wrap.appendChild(c); return wrap;
+  }
+
+  const stripCard = el("div","card");
+  stripCard.appendChild(h3("Current streaks"));
+  const strip = el("div","habit-strip");
+  active.forEach(h=>{
+    const p = el("div","habit-pill");
+    p.appendChild(el("span","",h.name));
+    const s = habitStreak(h.id);
+    p.appendChild(el("span","streak"+(s===0?" zero":""),`🔥 ${s}`));
+    const e = el("button","btn ghost","Edit"); e.style.cssText="padding:0 8px;font-size:11px;min-height:24px;"; e.onclick=()=>openHabitModal(h.id);
+    p.appendChild(e);
+    strip.appendChild(p);
+  });
+  stripCard.appendChild(strip);
+  wrap.appendChild(stripCard);
+
+  const grid = el("div","card"); grid.style.marginTop="14px";
+  grid.appendChild(h3("Last 60 days"));
+  const g = el("div","habit-grid-wrap");
+  const tbl = el("table","habit-grid");
+  const days = 60; const today = new Date(); today.setHours(0,0,0,0);
+  const hr = el("tr"); hr.appendChild(el("th","",""));
+  for (let i=0;i<days;i++){ const d=addDays(today,-(days-1)+i); const td=el("td","date-label"); td.textContent = (i===0||i===days-1||d.getDate()===1)?`${d.getMonth()+1}/${d.getDate()}`:""; td.style.background="transparent"; td.style.cursor="default"; hr.appendChild(td); }
+  tbl.appendChild(hr);
+  active.forEach(h=>{
+    const tr = el("tr"); tr.appendChild(el("th","",h.name));
+    for (let i=0;i<days;i++){
+      const d = addDays(today,-(days-1)+i); const iso=toISO(d); const td=el("td");
+      if (habitDone(h.id,iso)) td.classList.add("done");
+      if (iso===toISO(today)) td.classList.add("today-col");
+      td.title = `${h.name} · ${fmtDateLong(d)}`;
+      td.onclick = ()=>{ toggleHabit(h.id,iso); render(); };
+      tr.appendChild(td);
+    }
+    tbl.appendChild(tr);
+  });
+  g.appendChild(tbl); grid.appendChild(g);
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+/* ───────── Reviews ───────── */
+function renderReviews(){
+  const wrap = el("div");
+  const h2 = el("h2","","Reviews"); h2.style.cssText="font-size:24px;font-weight:700;margin-bottom:14px;";
+  wrap.appendChild(h2);
+
+  const ws = startOfWeek(state.cursor); const we = addDays(ws,6);
+  const wK = weekKey(ws);
+  const wData = state.reviews[wK] || { theme:"", wins:"", lessons:"", changes:"", goals:"" };
+
+  const wCard = el("div","card");
+  const wHead = el("div"); wHead.style.cssText="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;";
+  const wTitle = el("h3","",`Weekly review · ${MONTHS[ws.getMonth()]} ${ws.getDate()} – ${MONTHS[we.getMonth()]} ${we.getDate()}`);
+  wTitle.style.cssText="font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent-deep);flex:1;min-width:200px;";
+  const wPrev = el("button","icon-btn","‹"); wPrev.onclick=()=>{ state.cursor=addDays(state.cursor,-7); render(); };
+  const wNext = el("button","icon-btn","›"); wNext.onclick=()=>{ state.cursor=addDays(state.cursor,7); render(); };
+  wHead.appendChild(wTitle); wHead.appendChild(wPrev); wHead.appendChild(wNext);
+  wCard.appendChild(wHead);
+  wCard.appendChild(buildReviewStats(ws, we));
+  const wGrid = el("div","grid-2");
+  wGrid.appendChild(textarea("Theme of the week", wData.theme, v=>{ wData.theme=v; stamp(wData); state.reviews[wK]=wData; saveReviews(state.reviews); }));
+  wGrid.appendChild(textarea("Biggest wins", wData.wins, v=>{ wData.wins=v; stamp(wData); state.reviews[wK]=wData; saveReviews(state.reviews); }));
+  wGrid.appendChild(textarea("Lessons learned", wData.lessons, v=>{ wData.lessons=v; stamp(wData); state.reviews[wK]=wData; saveReviews(state.reviews); }));
+  wGrid.appendChild(textarea("What to change next week", wData.changes, v=>{ wData.changes=v; stamp(wData); state.reviews[wK]=wData; saveReviews(state.reviews); }));
+  wCard.appendChild(wGrid);
+  wCard.appendChild(textarea("Goals for next week", wData.goals, v=>{ wData.goals=v; stamp(wData); state.reviews[wK]=wData; saveReviews(state.reviews); }));
+  wrap.appendChild(wCard);
+
+  const mStart = new Date(state.cursor.getFullYear(), state.cursor.getMonth(), 1);
+  const mEnd = new Date(state.cursor.getFullYear(), state.cursor.getMonth()+1, 0);
+  const mK = monthKey(state.cursor);
+  const mData = state.reviews[mK] || { theme:"", wins:"", lessons:"", changes:"", goals:"" };
+
+  const mCard = el("div","card"); mCard.style.marginTop="14px";
+  const mHead = el("div"); mHead.style.cssText="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;";
+  const mTitle = el("h3","",`Monthly review · ${MONTHS[mStart.getMonth()]} ${mStart.getFullYear()}`);
+  mTitle.style.cssText="font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent-deep);flex:1;min-width:200px;";
+  const mPrev = el("button","icon-btn","‹"); mPrev.onclick=()=>{ state.cursor=addMonths(state.cursor,-1); render(); };
+  const mNext = el("button","icon-btn","›"); mNext.onclick=()=>{ state.cursor=addMonths(state.cursor,1); render(); };
+  mHead.appendChild(mTitle); mHead.appendChild(mPrev); mHead.appendChild(mNext);
+  mCard.appendChild(mHead);
+  mCard.appendChild(buildReviewStats(mStart, mEnd));
+  const mGrid = el("div","grid-2");
+  mGrid.appendChild(textarea("Theme of the month", mData.theme, v=>{ mData.theme=v; stamp(mData); state.reviews[mK]=mData; saveReviews(state.reviews); }));
+  mGrid.appendChild(textarea("Biggest wins", mData.wins, v=>{ mData.wins=v; stamp(mData); state.reviews[mK]=mData; saveReviews(state.reviews); }));
+  mGrid.appendChild(textarea("Lessons learned", mData.lessons, v=>{ mData.lessons=v; stamp(mData); state.reviews[mK]=mData; saveReviews(state.reviews); }));
+  mGrid.appendChild(textarea("What to change next month", mData.changes, v=>{ mData.changes=v; stamp(mData); state.reviews[mK]=mData; saveReviews(state.reviews); }));
+  mCard.appendChild(mGrid);
+  mCard.appendChild(textarea("Goals for next month", mData.goals, v=>{ mData.goals=v; stamp(mData); state.reviews[mK]=mData; saveReviews(state.reviews); }));
+  wrap.appendChild(mCard);
+  return wrap;
+}
+function buildReviewStats(start, end){
+  const stats = el("div","review-stats");
+  let entryCount=0, moodSum=0, moodN=0, choresDone=0, habitDoneN=0, habitCells=0;
+  for (let d = new Date(start); d <= end; d = addDays(d,1)){
+    const iso = toISO(d); const e = state.entries[iso];
+    if (e){ entryCount++; if (e.mood){ moodSum+=e.mood; moodN++; } }
+    for (const c of state.chores) if (expandOccurrences(c,d,d).length) { if (c.completed && c.completed[iso]) choresDone++; }
+    for (const h of state.habits) if (!h.archivedAt){ habitCells++; if (habitDone(h.id,iso)) habitDoneN++; }
+  }
+  stats.appendChild(statCard(entryCount,"Entries"));
+  stats.appendChild(statCard(moodN?(moodSum/moodN).toFixed(1):"—","Avg mood"));
+  stats.appendChild(statCard(choresDone,"Chores done"));
+  stats.appendChild(statCard(habitCells?Math.round(100*habitDoneN/habitCells)+"%":"—","Habit rate"));
+  return stats;
+}
+function statCard(n, l){ const c=el("div","stat-card"); c.appendChild(el("div","stat-n",String(n))); c.appendChild(el("div","stat-l",l)); return c; }
+
+/* ════════════════════════════════════════════════════════
+   CHORE / HABIT MODALS
+   ════════════════════════════════════════════════════════ */
+function openChoreModal(id, prefillDate){
+  state.editingChoreId = id;
+  const f = { title:$("cf-title"), notes:$("cf-notes"), date:$("cf-date"), time:$("cf-time"), recur:$("cf-recur"), interval:$("cf-interval"), end:$("cf-end"), reminder:$("cf-reminder") };
+  const del = $("chore-modal-delete");
+  if (id){
+    const c = state.chores.find(x=>x.id===id); if (!c) return;
+    $("chore-modal-title").textContent = "Edit chore"; del.classList.remove("hide");
+    f.title.value = c.title; f.notes.value = c.notes||"";
+    f.date.value = c.startDate; f.time.value = c.time||"";
+    f.recur.value = c.recurrence ? c.recurrence.type : "none";
+    f.interval.value = c.recurrence ? (c.recurrence.interval||1) : 1;
+    f.end.value = c.recurrence && c.recurrence.endDate ? c.recurrence.endDate : "";
+    f.reminder.value = c.reminderDaysBefore==null ? "" : String(c.reminderDaysBefore);
+    state.editingChoreWeekdays = c.recurrence && c.recurrence.weekdays ? [...c.recurrence.weekdays] : [];
+  } else {
+    $("chore-modal-title").textContent = "New chore"; del.classList.add("hide");
+    f.title.value=""; f.notes.value=""; f.date.value = prefillDate||toISO(new Date());
+    f.time.value=""; f.recur.value="none"; f.interval.value=1; f.end.value=""; f.reminder.value="";
+    state.editingChoreWeekdays = [];
+  }
+  updateChoreRecurFields();
+  $("modal-chore-bg").classList.add("show");
+  f.title.focus();
+}
+function closeChoreModal(){ $("modal-chore-bg").classList.remove("show"); state.editingChoreId=null; state.editingChoreWeekdays=[]; }
+function updateChoreRecurFields(){
+  const t = $("cf-recur").value;
+  const unit=$("cf-interval-unit"), iR=$("cf-interval-row"), wR=$("cf-weekdays-row"), eR=$("cf-end-row");
+  if (t==="none"){ iR.classList.add("hide"); wR.classList.add("hide"); eR.classList.add("hide"); return; }
+  iR.classList.remove("hide"); eR.classList.remove("hide");
+  unit.textContent = {daily:"days",weekly:"weeks",monthly:"months",yearly:"years"}[t];
+  wR.classList.toggle("hide", t!=="weekly");
+  renderChoreWeekdayButtons();
+}
+function renderChoreWeekdayButtons(){
+  document.querySelectorAll("#cf-weekdays button").forEach(b=>b.classList.toggle("active", state.editingChoreWeekdays.includes(Number(b.dataset.wd))));
+}
+function saveChoreFromModal(){
+  const title = $("cf-title").value.trim();
+  const notes = $("cf-notes").value.trim();
+  const date = $("cf-date").value;
+  const time = $("cf-time").value;
+  const rec = $("cf-recur").value;
+  const iv = Math.max(1, Number($("cf-interval").value)||1);
+  const end = $("cf-end").value;
+  const rem = $("cf-reminder").value;
+  if (!title){ alert("Title is required."); return; }
+  if (!date){ alert("Date is required."); return; }
+  const recurrence = rec==="none" ? null : {
+    type: rec, interval: iv,
+    weekdays: rec==="weekly" ? [...state.editingChoreWeekdays].sort() : undefined,
+    endDate: end || null,
+  };
+  if (state.editingChoreId){
+    const c = state.chores.find(x=>x.id===state.editingChoreId);
+    Object.assign(c, { title, notes, startDate:date, time:time||null, recurrence, reminderDaysBefore: rem===""?null:Number(rem) });
+    stamp(c);
+  } else {
+    state.chores.push(stamp({
+      id: crypto.randomUUID(), title, notes, startDate:date, time:time||null,
+      recurrence, reminderDaysBefore: rem===""?null:Number(rem), completed:{},
+    }));
+  }
+  saveChores(state.chores);
+  closeChoreModal(); render();
+}
+function deleteChoreFromModal(){
+  if (!state.editingChoreId) return;
+  if (!confirm("Delete this chore? This cannot be undone.")) return;
+  state.chores = state.chores.filter(c=>c.id!==state.editingChoreId);
+  saveChores(state.chores); closeChoreModal(); render();
+}
+function toggleChoreComplete(id, iso, done){
+  const c = state.chores.find(x=>x.id===id); if (!c) return;
+  if (!c.completed) c.completed = {};
+  if (done) c.completed[iso]=true; else delete c.completed[iso];
+  stamp(c); saveChores(state.chores); render();
+}
+
+function openHabitModal(id){
+  state.editingHabitId = id;
+  const n = $("hf-name"); const del = $("habit-modal-delete");
+  if (id){ const h = state.habits.find(x=>x.id===id); if (!h) return; $("habit-modal-title").textContent="Edit habit"; n.value=h.name; del.classList.remove("hide"); }
+  else { $("habit-modal-title").textContent="New habit"; n.value=""; del.classList.add("hide"); }
+  $("modal-habit-bg").classList.add("show"); n.focus();
+}
+function closeHabitModal(){ $("modal-habit-bg").classList.remove("show"); state.editingHabitId=null; }
+function saveHabitFromModal(){
+  const n = $("hf-name").value.trim();
+  if (!n){ alert("Habit name is required."); return; }
+  if (state.editingHabitId){ const h = state.habits.find(x=>x.id===state.editingHabitId); h.name=n; stamp(h); }
+  else state.habits.push(stamp({ id: crypto.randomUUID(), name:n, createdAt: nowISO(), archivedAt: null }));
+  saveHabits(state.habits); closeHabitModal(); render();
+}
+function deleteHabitFromModal(){
+  if (!state.editingHabitId) return;
+  if (!confirm("Delete this habit? Its history will also be removed.")) return;
+  state.habits = state.habits.filter(h=>h.id!==state.editingHabitId);
+  for (const k of Object.keys(state.habitLog)) if (k.startsWith(state.editingHabitId+"|")) delete state.habitLog[k];
+  state.habitLog._updatedAt = nowISO();
+  saveHabits(state.habits); saveHabitLog(state.habitLog);
+  closeHabitModal(); render();
+}
+
+/* ════════════════════════════════════════════════════════
+   SYNC (GitHub Gist)
+   ════════════════════════════════════════════════════════ */
+const GIST_FILE = "journal.json";
+let syncTimer = null;
+let syncInFlight = false;
+
+function markDirty(){
+  if (state.syncStatus === "syncing") return;
+  state.syncStatus = state.sync ? "dirty" : "idle";
+  renderSyncButton();
+  if (!state.sync) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => { syncNow(false).catch(()=>{}); }, 3000);
+}
+
+async function ghFetch(path, opts = {}){
+  if (!state.sync || !state.sync.pat) throw new Error("No token");
+  const headers = Object.assign({
+    "Authorization": `Bearer ${state.sync.pat}`,
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+  }, opts.headers || {});
+  if (opts.body) headers["Content-Type"] = "application/json";
+  const res = await fetch(`https://api.github.com${path}`, { ...opts, headers });
+  if (!res.ok){
+    let msg = `${res.status}`;
+    try { const j = await res.json(); msg += ` ${j.message||""}`; } catch {}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+async function createGist(){
+  const body = { description: "Daily Journal data", public: false, files: { [GIST_FILE]: { content: JSON.stringify(buildLocalSnapshot(), null, 2) } } };
+  return ghFetch("/gists", { method: "POST", body: JSON.stringify(body) });
+}
+async function readGist(id){
+  const g = await ghFetch(`/gists/${id}`);
+  const file = g.files && g.files[GIST_FILE];
+  if (!file) return null;
+  let content = file.content;
+  if (file.truncated && file.raw_url){
+    const resp = await fetch(file.raw_url, { headers: { "Authorization": `Bearer ${state.sync.pat}` } });
+    content = await resp.text();
+  }
+  try { return JSON.parse(content); } catch { return null; }
+}
+async function writeGist(id, data){
+  await ghFetch(`/gists/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ files: { [GIST_FILE]: { content: JSON.stringify(data, null, 2) } } }),
+  });
+}
+
+function buildLocalSnapshot(){
+  return {
+    version: 1,
+    savedAt: nowISO(),
+    chores: state.chores,
+    habits: state.habits,
+    habitLog: state.habitLog,
+    entries: state.entries,
+    reviews: state.reviews,
+  };
+}
+function applySnapshot(snap){
+  state.chores = snap.chores || [];
+  state.habits = snap.habits || [];
+  state.habitLog = snap.habitLog || {};
+  state.entries = snap.entries || {};
+  state.reviews = snap.reviews || {};
+  saveJSON(K_CHORES, state.chores);
+  saveJSON(K_HABITS, state.habits);
+  saveJSON(K_HABIT_LOG, state.habitLog);
+  saveJSON(K_ENTRIES, state.entries);
+  saveJSON(K_REVIEWS, state.reviews);
+}
+
+/* Merge two snapshots. Returns { merged, conflicts } */
+function mergeSnapshots(local, remote, lastSyncedAt){
+  const conflicts = [];
+  const merged = {
+    version: 1,
+    chores: mergeArray(local.chores, remote.chores, "id", lastSyncedAt, conflicts, "chore", x=>x.title),
+    habits: mergeArray(local.habits, remote.habits, "id", lastSyncedAt, conflicts, "habit", x=>x.name),
+    habitLog: mergeBlob(local.habitLog, remote.habitLog, lastSyncedAt, conflicts, "habitLog", ()=>"Habit completion log"),
+    entries: mergeMap(local.entries, remote.entries, lastSyncedAt, conflicts, "entry", (k)=>`Journal entry · ${k}`),
+    reviews: mergeMap(local.reviews, remote.reviews, lastSyncedAt, conflicts, "review", (k)=>`Review · ${k}`),
+  };
+  return { merged, conflicts };
+}
+function mergeArray(localArr, remoteArr, keyName, lastSyncedAt, conflicts, type, descFn){
+  localArr = localArr || []; remoteArr = remoteArr || [];
+  const byKey = new Map();
+  for (const it of localArr) byKey.set(it[keyName], { local: it });
+  for (const it of remoteArr) {
+    const e = byKey.get(it[keyName]) || {}; e.remote = it;
+    byKey.set(it[keyName], e);
+  }
+  const out = [];
+  for (const [k, v] of byKey){
+    const resolved = pickItem(v.local, v.remote, lastSyncedAt);
+    if (resolved.conflict){
+      conflicts.push({ type, id: k, local: v.local, remote: v.remote, description: descFn(v.local || v.remote), resolution: null });
+      out.push(v.local); // placeholder, will be replaced after user resolves
+    } else if (resolved.value) {
+      out.push(resolved.value);
+    }
+  }
+  return out;
+}
+function mergeMap(localObj, remoteObj, lastSyncedAt, conflicts, type, descFn){
+  localObj = localObj || {}; remoteObj = remoteObj || {};
+  const keys = new Set([...Object.keys(localObj), ...Object.keys(remoteObj)]);
+  const out = {};
+  for (const k of keys){
+    const l = localObj[k], r = remoteObj[k];
+    const resolved = pickItem(l, r, lastSyncedAt);
+    if (resolved.conflict){
+      conflicts.push({ type, id: k, local: l, remote: r, description: descFn(k), resolution: null });
+      out[k] = l;
+    } else if (resolved.value != null) out[k] = resolved.value;
+  }
+  return out;
+}
+function mergeBlob(local, remote, lastSyncedAt, conflicts, type, descFn){
+  // Single-doc blob with _updatedAt; if both changed since lastSyncedAt, it's a conflict (rare).
+  if (!local) return remote || {};
+  if (!remote) return local;
+  const lu = local._updatedAt || "";
+  const ru = remote._updatedAt || "";
+  if (lu === ru) return local;
+  const ls = lastSyncedAt || "";
+  if (lu > ls && ru > ls && lu !== ru){
+    conflicts.push({ type, id: "habitLog", local, remote, description: descFn(), resolution: null });
+    return local;
+  }
+  return ru > lu ? remote : local;
+}
+function pickItem(local, remote, lastSyncedAt){
+  if (!local && !remote) return { value: null };
+  if (!local) return { value: remote };
+  if (!remote) return { value: local };
+  const lu = local._updatedAt || "";
+  const ru = remote._updatedAt || "";
+  if (lu === ru) return { value: local };
+  const ls = lastSyncedAt || "";
+  if (lu > ls && ru > ls && lu !== ru) return { conflict: true };
+  return { value: ru > lu ? remote : local };
+}
+
+function setSyncStatus(s, err){ state.syncStatus = s; state.syncError = err||null; renderSyncButton(); }
+
+async function syncNow(force){
+  if (!state.sync) return;
+  if (syncInFlight) return;
+  if (!navigator.onLine){ setSyncStatus("offline"); return; }
+  syncInFlight = true;
+  setSyncStatus("syncing");
+  try {
+    let gistId = state.sync.gistId;
+    let remote = null;
+    if (gistId) {
+      try { remote = await readGist(gistId); }
+      catch (e){ if (String(e.message).startsWith("404")) remote = null; else throw e; }
+    }
+    const local = buildLocalSnapshot();
+    let merged, conflicts = [];
+    if (!remote) { merged = local; }
+    else {
+      const res = mergeSnapshots(local, remote, state.sync.lastSyncedAt);
+      merged = res.merged; conflicts = res.conflicts;
+    }
+
+    if (conflicts.length){
+      state.conflictQueue = conflicts;
+      state.pendingRemote = remote;
+      openConflictModal();
+      setSyncStatus("dirty"); // leaves sync as pending until resolution
+      syncInFlight = false;
+      return;
+    }
+
+    if (!gistId){
+      const g = await createGist();
+      gistId = g.id;
+    } else {
+      await writeGist(gistId, merged);
+    }
+    applySnapshot(merged);
+    state.sync.gistId = gistId;
+    state.sync.lastSyncedAt = nowISO();
+    saveSyncConf(state.sync);
+    setSyncStatus("synced");
+    render();
+  } catch (e){
+    console.error(e); setSyncStatus("error", e.message);
+  } finally { syncInFlight = false; }
+}
+
+function openConflictModal(){
+  const list = $("conflict-list"); list.innerHTML = "";
+  state.conflictQueue.forEach((c, idx)=>{
+    const row = el("div","conflict-item");
+    row.dataset.idx = idx;
+    row.appendChild(el("div","ci-title", c.description));
+    const v = el("div","ci-versions");
+    v.textContent = "LOCAL:  " + summarizeValue(c.local) + "\nREMOTE: " + summarizeValue(c.remote);
+    row.appendChild(v);
+    const acts = el("div","ci-actions");
+    const kl = el("button","btn","Keep local"); kl.onclick = ()=>{ c.resolution="local"; row.classList.add("resolved"); };
+    const kr = el("button","btn","Keep remote"); kr.onclick = ()=>{ c.resolution="remote"; row.classList.add("resolved"); };
+    acts.appendChild(kl); acts.appendChild(kr);
+    row.appendChild(acts);
+    list.appendChild(row);
+  });
+  $("modal-conflict-bg").classList.add("show");
+}
+function summarizeValue(v){
+  if (!v) return "(missing)";
+  try {
+    if (typeof v === "string") return v.slice(0,200);
+    const s = JSON.stringify(v, null, 2);
+    return s.length > 400 ? s.slice(0,400) + "…" : s;
+  } catch { return String(v); }
+}
+function closeConflictModal(){ $("modal-conflict-bg").classList.remove("show"); }
+
+async function applyConflictResolutions(){
+  const unresolved = state.conflictQueue.filter(c => !c.resolution);
+  if (unresolved.length){ alert(`${unresolved.length} item(s) still need a choice.`); return; }
+  // Apply resolutions to build final merged snapshot
+  const local = buildLocalSnapshot();
+  const remote = state.pendingRemote;
+  const merged = JSON.parse(JSON.stringify(local)); // start from local
+  // replace remote-wins items
+  for (const c of state.conflictQueue){
+    const pick = c.resolution === "remote" ? c.remote : c.local;
+    if (c.type === "chore" || c.type === "habit"){
+      const arrKey = c.type === "chore" ? "chores" : "habits";
+      merged[arrKey] = merged[arrKey].filter(x => x.id !== c.id);
+      if (pick) merged[arrKey].push(pick);
+    } else if (c.type === "entry"){
+      if (pick) merged.entries[c.id] = pick; else delete merged.entries[c.id];
+    } else if (c.type === "review"){
+      if (pick) merged.reviews[c.id] = pick; else delete merged.reviews[c.id];
+    } else if (c.type === "habitLog"){
+      merged.habitLog = pick || {};
+    }
+  }
+  // Now merge non-conflicted remote items into merged (pull pattern)
+  const merge2 = mergeSnapshots(merged, remote, state.sync.lastSyncedAt);
+  const final = merge2.merged;
+
+  try {
+    setSyncStatus("syncing");
+    await writeGist(state.sync.gistId, final);
+    applySnapshot(final);
+    state.sync.lastSyncedAt = nowISO();
+    saveSyncConf(state.sync);
+    state.conflictQueue = null; state.pendingRemote = null;
+    closeConflictModal();
+    setSyncStatus("synced");
+    render();
+  } catch (e){ console.error(e); setSyncStatus("error", e.message); }
+}
+
+/* Sync settings modal */
+function openSyncModal(){
+  $("sf-pat").value = state.sync ? state.sync.pat : "";
+  $("sf-gist").value = state.sync ? state.sync.gistId || "" : "";
+  $("sync-disconnect").classList.toggle("hide", !state.sync);
+  const info = $("sync-status-info");
+  if (state.sync && state.sync.lastSyncedAt){ info.textContent = `Last synced ${new Date(state.sync.lastSyncedAt).toLocaleString()}.`; }
+  else info.textContent = "";
+  $("modal-sync-bg").classList.add("show");
+}
+function closeSyncModal(){ $("modal-sync-bg").classList.remove("show"); }
+async function saveSyncSettings(){
+  const pat = $("sf-pat").value.trim();
+  const gistId = $("sf-gist").value.trim();
+  if (!pat){ alert("Token is required."); return; }
+  state.sync = { pat, gistId: gistId || null, lastSyncedAt: null };
+  saveSyncConf(state.sync);
+  localStorage.setItem(K_SYNC_NUDGED, "1");
+  closeSyncModal();
+  setSyncStatus("syncing");
+  if (!state.sync.gistId){
+    try {
+      const g = await createGist();
+      state.sync.gistId = g.id; saveSyncConf(state.sync);
+      alert(`New private gist created. Gist ID:\n\n${g.id}\n\nCopy this ID and paste it into the Sync settings on your other devices.`);
+    } catch (e){
+      alert("Failed to create gist: " + e.message);
+      setSyncStatus("error", e.message); return;
+    }
+  }
+  await syncNow(true);
+}
+function disconnectSync(){
+  if (!confirm("Disconnect sync? Your local data stays; just stops syncing with the gist.")) return;
+  state.sync = null; saveSyncConf(null);
+  closeSyncModal(); setSyncStatus("idle"); renderSyncButton();
+}
+function exportJSON(){
+  const snap = buildLocalSnapshot();
+  const blob = new Blob([JSON.stringify(snap, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `journal-${toISO(new Date())}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ════════════════════════════════════════════════════════
+   DOM HELPERS & WIRING
+   ════════════════════════════════════════════════════════ */
+function el(tag, cls, text){ const n=document.createElement(tag); if (cls) n.className=cls; if (text!=null) n.textContent=text; return n; }
+function h3(text){ return el("h3","",text); }
+function labelEl(text){ const l=el("label"); l.textContent=text; l.style.cssText="display:block;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px;"; return l; }
+function $(id){ return document.getElementById(id); }
+
+$("views").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-view]"); if (!b) return;
+  state.view = b.dataset.view;
+  if (state.view==="today") state.todayCursor = new Date();
+  if (state.view==="calendar" || state.view==="reviews") state.cursor = new Date();
+  render();
+});
+$("btn-new-chore").onclick = ()=>openChoreModal(null);
+
+$("chore-modal-cancel").onclick = closeChoreModal;
+$("chore-modal-close").onclick = closeChoreModal;
+$("chore-modal-save").onclick = saveChoreFromModal;
+$("chore-modal-delete").onclick = deleteChoreFromModal;
+$("modal-chore-bg").addEventListener("click", e=>{ if (e.target.id==="modal-chore-bg") closeChoreModal(); });
+$("cf-recur").onchange = updateChoreRecurFields;
+$("cf-weekdays").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-wd]"); if (!b) return;
+  const wd = Number(b.dataset.wd);
+  const i = state.editingChoreWeekdays.indexOf(wd);
+  if (i>=0) state.editingChoreWeekdays.splice(i,1); else state.editingChoreWeekdays.push(wd);
+  renderChoreWeekdayButtons();
+});
+
+$("habit-modal-cancel").onclick = closeHabitModal;
+$("habit-modal-close").onclick = closeHabitModal;
+$("habit-modal-save").onclick = saveHabitFromModal;
+$("habit-modal-delete").onclick = deleteHabitFromModal;
+$("modal-habit-bg").addEventListener("click", e=>{ if (e.target.id==="modal-habit-bg") closeHabitModal(); });
+
+$("sync-btn").onclick = ()=>{
+  if (!state.sync) openSyncModal();
+  else syncNow(true);
+};
+$("sync-btn").addEventListener("contextmenu", e=>{ e.preventDefault(); openSyncModal(); });
+$("sync-modal-close").onclick = closeSyncModal;
+$("sync-modal-cancel").onclick = closeSyncModal;
+$("sync-save").onclick = saveSyncSettings;
+$("sync-disconnect").onclick = disconnectSync;
+$("sync-export").onclick = exportJSON;
+$("modal-sync-bg").addEventListener("click", e=>{ if (e.target.id==="modal-sync-bg") closeSyncModal(); });
+
+$("sync-setup-open").onclick = openSyncModal;
+$("sync-nudge-dismiss").onclick = ()=>{ localStorage.setItem(K_SYNC_NUDGED, "1"); renderSyncNudge(); };
+
+$("conflict-modal-close").onclick = ()=>{ if (confirm("Cancel conflict resolution? Local changes stay; remote unchanged.")) { state.conflictQueue=null; state.pendingRemote=null; closeConflictModal(); setSyncStatus("dirty"); } };
+$("conflict-apply").onclick = applyConflictResolutions;
+$("conflict-all-local").onclick = ()=>{ state.conflictQueue.forEach(c => c.resolution = "local"); openConflictModal(); };
+$("conflict-all-remote").onclick = ()=>{ state.conflictQueue.forEach(c => c.resolution = "remote"); openConflictModal(); };
+
+document.addEventListener("keydown", e=>{
+  if (e.key==="Escape"){
+    if ($("modal-chore-bg").classList.contains("show")) closeChoreModal();
+    else if ($("modal-habit-bg").classList.contains("show")) closeHabitModal();
+    else if ($("modal-sync-bg").classList.contains("show")) closeSyncModal();
+  }
+});
+
+/* Online/offline awareness */
+window.addEventListener("online", ()=>{ if (state.sync){ setSyncStatus("dirty"); syncNow(false); } });
+window.addEventListener("offline", ()=>{ if (state.sync) setSyncStatus("offline"); });
+
+/* Reminder tick */
+setInterval(renderReminderBanner, 60_000);
+
+/* Service worker */
+if ("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); });
+}
+
+/* Boot */
+setSyncStatus(state.sync ? "idle" : "idle");
+render();
+if (state.sync) syncNow(true);
+</script>
+</body>
+</html>
