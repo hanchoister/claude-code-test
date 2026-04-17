@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FPS</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#000; display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden; }
+canvas { display:block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+'use strict';
+
+// ── SETUP ──────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = 960, H = 540;
+canvas.width = W; canvas.height = H;
+
+// ── CONSTANTS ──────────────────────────────────────────────────────────────
+const TILE       = 64;
+const FOV        = Math.PI / 3;        // 60 degrees
+const HALF_FOV   = FOV / 2;
+const NUM_RAYS   = W;
+const FOCAL      = (W / 2) / Math.tan(HALF_FOV);
+const PLAYER_H   = H / 2;
+const MAX_DEPTH  = 20;
+
+// ── INPUT ──────────────────────────────────────────────────────────────────
+const keys = {};
+let pointerLocked = false;
+let mouseDX = 0;
+let mouseClick = false;
+
+window.addEventListener('keydown', e => { keys[e.key] = true; keys[e.code] = true; });
+window.addEventListener('keyup',   e => { keys[e.key] = false; keys[e.code] = false; });
+
+let canvasClicked = false;
+canvas.addEventListener('mousedown', e => {
+  if (e.button !== 0) return;
+  canvasClicked = true;
+  mouseClick = true;
+  if (!pointerLocked) canvas.requestPointerLock();
+});
+document.addEventListener('pointerlockchange', () => {
+  pointerLocked = document.pointerLockElement === canvas;
+});
+document.addEventListener('mousemove', e => {
+  if (pointerLocked) mouseDX += e.movementX;
+});
+
+// ── LEVEL MAPS ─────────────────────────────────────────────────────────────
+// 0=floor, 1-4=wall types, 9=indestructible border
+const MAPS = [
+// Level 1 — small bunker 16×16
+[
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,1,1,0,0,0,1,1,0,0,0,1,0,0,1],
+[1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],
+[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+[1,0,0,0,1,1,0,0,0,1,1,0,0,0,0,1],
+[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,1],
+[1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1],
+[1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,2,0,0,0,1],
+[1,0,2,0,0,0,0,0,0,0,0,0,0,2,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+],
+// Level 2 — medium base 20×20
+[
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,2,2,0,0,0,0,0,0,0,0,0,0,0,0,2,2,0,1],
+[1,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,1],
+[1,0,0,0,0,1,1,1,0,0,0,1,1,1,0,0,0,0,0,1],
+[1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1],
+[1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1],
+[1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1],
+[1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1],
+[1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1],
+[1,0,0,0,0,1,1,1,0,0,0,1,1,1,0,0,0,0,0,1],
+[1,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,1],
+[1,0,2,2,0,0,0,0,0,0,0,0,0,0,0,0,2,2,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+],
+// Level 3 — facility 22×22
+[
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,3,3,3,0,0,0,0,0,0,0,0,0,0,0,3,3,3,0,0,1],
+[1,0,3,0,0,0,0,0,3,0,0,0,3,0,0,0,0,0,3,0,0,1],
+[1,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,1],
+[1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
+[1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,2,0,0,0,0,2,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,2,0,0,0,0,2,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,2,0,0,0,0,2,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,2,0,0,0,0,2,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
+[1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
+[1,0,3,0,0,0,0,0,3,0,0,0,3,0,0,0,0,0,3,0,0,1],
+[1,0,3,3,3,0,0,0,0,0,0,0,0,0,0,0,3,3,3,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+],
+];
+
+// ── LEVEL ENEMY CONFIGS ────────────────────────────────────────────────────
+const LEVEL_CONFIGS = [
+  { mapIdx:0, playerStart:{x:1.5,y:1.5,a:0}, enemies:[
+    {x:13,y:2,t:'grunt'},{x:13,y:13,t:'grunt'},{x:7,y:8,t:'grunt'},{x:2,y:13,t:'grunt'},
+  ]},
+  { mapIdx:1, playerStart:{x:1.5,y:1.5,a:0}, enemies:[
+    {x:17,y:2,t:'grunt'},{x:17,y:17,t:'grunt'},{x:10,y:10,t:'heavy'},
+    {x:2,y:17,t:'grunt'},{x:6,y:10,t:'grunt'},{x:14,y:10,t:'heavy'},
+    {x:10,y:4,t:'grunt'},{x:10,y:16,t:'grunt'},
+  ]},
+  { mapIdx:2, playerStart:{x:1.5,y:1.5,a:0}, enemies:[
+    {x:19,y:2,t:'grunt'},{x:19,y:19,t:'sniper'},{x:10,y:10,t:'heavy'},
+    {x:2,y:19,t:'grunt'},{x:10,y:3,t:'sniper'},{x:10,y:18,t:'grunt'},
+    {x:3,y:10,t:'heavy'},{x:18,y:10,t:'sniper'},{x:6,y:6,t:'grunt'},
+    {x:15,y:15,t:'grunt'},
+  ]},
+  // Level 4+ generated
+];
+
+function getLevelConfig(n) {
+  if (n <= LEVEL_CONFIGS.length) return LEVEL_CONFIGS[n-1];
+  const mapIdx = (n-1) % MAPS.length;
+  const map = MAPS[mapIdx];
+  const rows = map.length, cols = map[0].length;
+  const enemies = [];
+  const types = ['grunt','grunt','heavy','sniper'];
+  let count = 6 + n * 2;
+  for (let i = 0; i < count; i++) {
+    let ex, ey, tries = 0;
+    do { ex = 1 + Math.floor(Math.random()*(cols-2)); ey = 1 + Math.floor(Math.random()*(rows-2)); tries++; }
+    while ((map[ey][ex] !== 0 || (Math.abs(ex-2)<3 && Math.abs(ey-2)<3)) && tries < 100);
+    enemies.push({x:ex+0.5, y:ey+0.5, t: types[Math.floor(Math.random()*types.length)]});
+  }
+  if (n % 3 === 0) enemies.push({x:cols-3, y:rows-3, t:'boss'});
+  return { mapIdx, playerStart:{x:1.5,y:1.5,a:0}, enemies };
+}
+
+// ── WALL COLORS ────────────────────────────────────────────────────────────
+const WALL_COLORS = [
+  null,
+  [80, 90, 100],   // type 1 — concrete grey-blue
+  [90, 75, 60],    // type 2 — tan/brown
+  [60, 80, 60],    // type 3 — military green
+  [100, 80, 50],   // type 4 — sand
+];
+
+// ── PLAYER ─────────────────────────────────────────────────────────────────
+const player = {
+  x:2.5, y:2.5, angle:0,
+  hp:100, maxHp:100,
+  ammo:30, maxAmmo:30, reserve:120,
+  fireCooldown:0,
+  walkCycle:0,
+  velX:0, velY:0,
+  recoilY:0, recoilVel:0,
+  score:0,
+  invincible:0,
+};
+
+// ── ENEMIES ────────────────────────────────────────────────────────────────
+let enemies = [];
+let map = MAPS[0];
+let mapRows, mapCols;
+
+const ENEMY_DEFS = {
+  grunt:  { hp:40,  maxHp:40,  speed:2.2, fireRate:2.5, dmg:8,  size:0.3, score:100, color:[80,160,80]   },
+  heavy:  { hp:100, maxHp:100, speed:1.5, fireRate:3.5, dmg:15, size:0.38,score:250, color:[120,120,80]  },
+  sniper: { hp:25,  maxHp:25,  speed:1.0, fireRate:4.0, dmg:35, size:0.28,score:200, color:[60,80,140]   },
+  boss:   { hp:400, maxHp:400, speed:1.8, fireRate:1.0, dmg:20, size:0.5, score:500, color:[160,40,40]   },
+};
+
+class Enemy {
+  constructor(x, y, type) {
+    this.x = x; this.y = y; this.type = type;
+    const d = ENEMY_DEFS[type];
+    Object.assign(this, d);
+    this.fireCooldown = Math.random() * d.fireRate;
+    this.state = 'idle';
+    this.alertTimer = 0;
+    this.animFrame = 0;
+    this.animTimer = 0;
+    this.dying = false;
+    this.dyingTimer = 0;
+    this.hitFlash = 0;
+    this.dist = 999;
+    this.screenX = -1;
+    this.screenSize = 0;
+  }
+
+  update(dt) {
+    if (this.dying) { this.dyingTimer -= dt; return; }
+
+    const dx = player.x - this.x, dy = player.y - this.y;
+    const d = Math.hypot(dx, dy);
+    this.dist = d;
+
+    const los = d < 14 && hasLOS(this.x, this.y, player.x, player.y);
+
+    if (los) { this.state = 'chase'; this.alertTimer = 3; }
+    else if (this.state === 'chase') {
+      this.alertTimer -= dt;
+      if (this.alertTimer <= 0) this.state = 'idle';
+    }
+
+    if (this.state === 'chase') {
+      let spd = this.speed;
+      if (this.type === 'sniper' && d < 6) spd = -1.5;
+      const nx = dx/d, ny = dy/d;
+      const nx2 = this.x + nx*spd*dt;
+      const ny2 = this.y + ny*spd*dt;
+      if (!isWall(nx2, this.y)) this.x = nx2;
+      if (!isWall(this.x, ny2)) this.y = ny2;
+    }
+
+    this.fireCooldown -= dt;
+    if (this.fireCooldown <= 0 && this.state === 'chase' && d < 12) {
+      const spread = this.type === 'boss' ? 0.15 : 0.1;
+      const baseA = Math.atan2(dy, dx);
+      spawnEnemyBullet(this.x, this.y, baseA + (Math.random()-0.5)*spread);
+      if (this.type === 'boss') {
+        spawnEnemyBullet(this.x, this.y, baseA + spread);
+        spawnEnemyBullet(this.x, this.y, baseA - spread);
+      }
+      this.fireCooldown = this.fireRate;
+    }
+
+    this.animTimer += dt;
+    if (this.animTimer > 0.15) { this.animFrame = (this.animFrame+1)%4; this.animTimer=0; }
+    if (this.hitFlash > 0) this.hitFlash -= dt;
+    if (this.invincible) this.invincible -= dt;
+  }
+
+  hit(dmg) {
+    this.hp -= dmg;
+    this.hitFlash = 0.12;
+    spawnParticles(this.x*TILE, this.y*TILE, 3, ['#fff','#ffcc44'], 30, 80, 0.1, 0.25);
+    if (this.hp <= 0 && !this.dying) {
+      this.dying = true;
+      this.dyingTimer = 0.4;
+      player.score += this.score;
+      addKill(this.type);
+      spawnParticles(this.x*TILE, this.y*TILE, 10, ['#cc2200','#ff4400','#ff8800','#fff'], 40,150,0.3,0.7);
+    }
+  }
+}
+
+// ── MAP HELPERS ────────────────────────────────────────────────────────────
+function isWall(wx, wy) {
+  const mx = Math.floor(wx), my = Math.floor(wy);
+  if (mx < 0 || my < 0 || mx >= mapCols || my >= mapRows) return true;
+  return map[my][mx] !== 0;
+}
+
+function hasLOS(x0, y0, x1, y1) {
+  const steps = 32;
+  for (let i = 1; i <= steps; i++) {  // start at 1 to skip the source tile
+    const t = i / steps;
+    const cx = x0 + (x1-x0)*t, cy = y0 + (y1-y0)*t;
+    if (isWall(cx, cy)) return false;
+  }
+  return true;
+}
+
+// ── PROJECTILES ────────────────────────────────────────────────────────────
+const enemyBullets  = [];
+let tracerTimer = 0;
+
+function fireHitscan() {
+  if (player.ammo <= 0) { triggerDryFire(); return; }
+  player.ammo--;
+  player.recoilVel += 22;
+  muzzleTimer = 0.1;
+  tracerTimer = 0.07;
+
+  // Find closest enemy whose center falls within the crosshair ray
+  let hitEnemy = null;
+  let minDepth = Infinity;
+  const ca = Math.cos(player.angle), sa = Math.sin(player.angle);
+
+  for (const e of enemies) {
+    if (e.dying) continue;
+    const dx = e.x - player.x, dy = e.y - player.y;
+    const depth   =  dx*ca + dy*sa;
+    const lateral = -dx*sa + dy*ca;
+    if (depth <= 0.1) continue;
+    // hitbox width scales with distance so it matches the visual sprite
+    const hitW = e.size + 0.4;
+    if (Math.abs(lateral) < hitW && depth < minDepth && hasLOS(player.x, player.y, e.x, e.y)) {
+      hitEnemy = e;
+      minDepth = depth;
+    }
+  }
+
+  if (hitEnemy) {
+    hitEnemy.hit(25);
+    spawnParticles(hitEnemy.x*TILE, hitEnemy.y*TILE, 6, ['#ffe066','#fff','#ffcc44'], 30,100, 0.1, 0.3);
+  }
+
+  spawnParticles(
+    (player.x + Math.cos(player.angle)*0.5) * TILE,
+    (player.y + Math.sin(player.angle)*0.5) * TILE,
+    4, ['#ffe066','#fff','#ffaa00'], 20,80, 0.05, 0.12
+  );
+}
+
+function spawnEnemyBullet(x, y, angle) {
+  enemyBullets.push({ x, y, vx:Math.cos(angle)*5, vy:Math.sin(angle)*5, life:3 });
+}
+
+let dryFireTimer = 0;
+function triggerDryFire() { dryFireTimer = 0.3; }
+
+function updateBullets(dt) {
+  if (tracerTimer > 0) tracerTimer -= dt;
+  for (let i = enemyBullets.length-1; i >= 0; i--) {
+    const b = enemyBullets[i];
+    b.x += b.vx*dt; b.y += b.vy*dt; b.life -= dt;
+    if (b.life <= 0 || isWall(b.x, b.y)) { enemyBullets.splice(i,1); continue; }
+    if (Math.hypot(b.x-player.x, b.y-player.y) < 0.25) {
+      if (player.invincible <= 0) {
+        player.hp -= 10;
+        player.invincible = 0.4;
+        hitVignette = 0.6;
+        spawnParticles(player.x*TILE, player.y*TILE, 5, ['#ff0000','#ff4444'], 20,60, 0.15, 0.4);
+      }
+      enemyBullets.splice(i,1);
+    }
+  }
+}
+
+// ── PARTICLES ─────────────────────────────────────────────────────────────
+// These are in world-pixel space (already multiplied by TILE)
+const particles = [];
+function spawnParticles(px, py, n, colors, sMin, sMax, lMin, lMax) {
+  for (let i=0; i<n; i++) {
+    const a = Math.random()*Math.PI*2;
+    const sp = sMin + Math.random()*(sMax-sMin);
+    particles.push({ x:px, y:py, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp,
+      life: lMin+Math.random()*(lMax-lMin), maxLife:0,
+      color: colors[Math.floor(Math.random()*colors.length)], size: 2+Math.random()*3 });
+    particles[particles.length-1].maxLife = particles[particles.length-1].life;
+  }
+}
+function updateParticles(dt) {
+  for (let i=particles.length-1; i>=0; i--) {
+    const p = particles[i];
+    p.x += p.vx*dt; p.y += p.vy*dt; p.vx*=0.9; p.vy*=0.9; p.life-=dt;
+    if (p.life<=0) particles.splice(i,1);
+  }
+}
+
+// ── KILL FEED ──────────────────────────────────────────────────────────────
+const killFeed = [];
+function addKill(type) {
+  const names = { grunt:'GRUNT', heavy:'HEAVY', sniper:'SNIPER', boss:'BOSS' };
+  killFeed.unshift({ text: `YOU  KILLED  ${names[type]||type.toUpperCase()}`, time: 3.5 });
+  if (killFeed.length > 4) killFeed.pop();
+}
+
+// ── RAYCASTER ──────────────────────────────────────────────────────────────
+const zBuffer = new Float32Array(W);
+
+function castRays() {
+  for (let col = 0; col < W; col++) {
+    const rayAngle = player.angle - HALF_FOV + (col / W) * FOV;
+    const cosA = Math.cos(rayAngle), sinA = Math.sin(rayAngle);
+
+    let mapX = Math.floor(player.x), mapY = Math.floor(player.y);
+    const stepX = cosA > 0 ? 1 : -1, stepY = sinA > 0 ? 1 : -1;
+    const deltaX = Math.abs(1/cosA), deltaY = Math.abs(1/sinA);
+    let sideDistX = cosA > 0 ? (mapX+1-player.x)*deltaX : (player.x-mapX)*deltaX;
+    let sideDistY = sinA > 0 ? (mapY+1-player.y)*deltaY : (player.y-mapY)*deltaY;
+    let side = 0;
+
+    for (let depth = 0; depth < MAX_DEPTH; depth++) {
+      if (sideDistX < sideDistY) { sideDistX += deltaX; mapX += stepX; side = 0; }
+      else                        { sideDistY += deltaY; mapY += stepY; side = 1; }
+      if (mapX < 0 || mapY < 0 || mapX >= mapCols || mapY >= mapRows || map[mapY][mapX] !== 0) break;
+    }
+
+    const perpDist = side === 0
+      ? (mapX - player.x + (1 - stepX) / 2) / cosA
+      : (mapY - player.y + (1 - stepY) / 2) / sinA;
+
+    const corrDist = Math.max(0.05, perpDist * Math.cos(rayAngle - player.angle));
+    zBuffer[col] = corrDist;
+
+    const wallH = Math.min(H, FOCAL / corrDist);
+    const top    = PLAYER_H - wallH / 2;
+    const wallType = mapX >= 0 && mapY >= 0 && mapX < mapCols && mapY < mapRows ? (map[mapY][mapX] || 1) : 1;
+    const baseColor = WALL_COLORS[Math.min(wallType, WALL_COLORS.length-1)] || WALL_COLORS[1];
+    const shade = Math.max(0.15, Math.min(1, 1 - corrDist / 14));
+    const sideDim = side === 1 ? 0.7 : 1.0;
+    const r = Math.floor(baseColor[0] * shade * sideDim);
+    const g = Math.floor(baseColor[1] * shade * sideDim);
+    const b = Math.floor(baseColor[2] * shade * sideDim);
+
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.fillRect(col, top, 1, wallH);
+  }
+}
+
+// ── SPRITE RENDERER ────────────────────────────────────────────────────────
+function renderSprites() {
+  // project each enemy into screen space
+  for (const e of enemies) {
+    if (e.dying && e.dyingTimer <= 0) continue;
+    const dx = e.x - player.x, dy = e.y - player.y;
+    const ca = Math.cos(player.angle), sa = Math.sin(player.angle);
+    const depth   =  dx*ca + dy*sa;   // forward component (true depth)
+    const lateral = -dx*sa + dy*ca;   // side component
+    if (depth <= 0.1) { e.screenX = -999; continue; }
+    e.screenX    = Math.floor((W / 2) * (1 + lateral / depth));
+    e.screenSize = Math.floor(Math.abs(FOCAL / depth));
+    e.dist       = depth;
+  }
+
+  // sort back-to-front
+  const sorted = enemies.filter(e => e.screenX > -900 && !(e.dying && e.dyingTimer <= 0))
+                         .sort((a,b) => b.dist - a.dist);
+
+  for (const e of sorted) {
+    const sz = e.screenSize;
+    const sx = e.screenX - sz/2;
+    const sy = PLAYER_H - sz/2;
+    if (sx + sz < 0 || sx > W) continue;
+
+    const startCol = Math.max(0, Math.floor(sx));
+    const endCol   = Math.min(W-1, Math.floor(sx+sz));
+    const alpha = e.dying ? Math.max(0, e.dyingTimer / 0.4) : 1;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    drawEnemySprite(e, sx, sy, sz);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+}
+
+function drawEnemySprite(e, sx, sy, sz) {
+  const flash = e.hitFlash > 0 && Math.floor(e.hitFlash*20)%2===0;
+  const def = ENEMY_DEFS[e.type];
+  const [cr,cg,cb] = flash ? [255,255,255] : def.color;
+
+  const u = sz/32; // unit size
+
+  if (e.type === 'grunt' || e.type === 'heavy') {
+    const legSwing = Math.sin(e.animFrame * Math.PI/2) * u * 2;
+    // legs
+    ctx.fillStyle = `rgb(${Math.floor(cr*0.6)},${Math.floor(cg*0.6)},${Math.floor(cb*0.6)})`;
+    ctx.fillRect(sx + sz*0.35, sy + sz*0.65, u*4, u*8 + legSwing);
+    ctx.fillRect(sx + sz*0.55, sy + sz*0.65, u*4, u*8 - legSwing);
+    // torso
+    ctx.fillStyle = `rgb(${cr},${cg},${cb})`;
+    ctx.fillRect(sx + sz*0.28, sy + sz*0.35, sz*0.44, sz*0.32);
+    // vest detail
+    ctx.fillStyle = `rgb(${Math.floor(cr*0.7)},${Math.floor(cg*0.7)},${Math.floor(cb*0.7)})`;
+    ctx.fillRect(sx + sz*0.33, sy + sz*0.38, sz*0.14, sz*0.24);
+    ctx.fillRect(sx + sz*0.53, sy + sz*0.38, sz*0.14, sz*0.24);
+    // head + helmet
+    ctx.fillStyle = `rgb(${Math.floor(cr*0.9)},${Math.floor(cg*0.85)},${Math.floor(cb*0.75)})`;
+    ctx.fillRect(sx + sz*0.36, sy + sz*0.18, sz*0.28, sz*0.18);
+    ctx.fillStyle = `rgb(${cr},${cg},${cb})`;
+    ctx.fillRect(sx + sz*0.33, sy + sz*0.12, sz*0.34, sz*0.1);
+    // eyes glow
+    ctx.fillStyle = '#ff0';
+    ctx.fillRect(sx + sz*0.38, sy + sz*0.22, u*2, u*2);
+    ctx.fillRect(sx + sz*0.55, sy + sz*0.22, u*2, u*2);
+    // gun
+    ctx.fillStyle = '#444';
+    ctx.fillRect(sx + sz*0.68, sy + sz*0.38, sz*0.18, u*3);
+    ctx.fillRect(sx + sz*0.72, sy + sz*0.35, sz*0.1, u*8);
+
+  } else if (e.type === 'sniper') {
+    const pulse = Math.sin(e.animFrame * Math.PI/2) * u;
+    // cloak
+    ctx.fillStyle = `rgb(${cr},${cg},${cb})`;
+    ctx.fillRect(sx + sz*0.3, sy + sz*0.1, sz*0.4, sz*0.85);
+    // hood
+    ctx.fillStyle = `rgb(${Math.floor(cr*0.7)},${Math.floor(cg*0.7)},${Math.floor(cb*0.8)})`;
+    ctx.fillRect(sx + sz*0.34, sy + sz*0.1, sz*0.32, sz*0.22);
+    // scope glow
+    ctx.fillStyle = e.animFrame%2===0 ? '#00ffff' : '#0088aa';
+    ctx.fillRect(sx + sz*0.6, sy + sz*0.32, sz*0.22+pulse, u*3);
+    // eyes
+    ctx.fillStyle = '#00ffff';
+    ctx.fillRect(sx + sz*0.38, sy + sz*0.18, u*3, u*2);
+
+  } else if (e.type === 'boss') {
+    const pulse = Math.sin(e.animFrame * Math.PI/2) * u * 2;
+    // main body
+    ctx.fillStyle = `rgb(${cr},${cg},${cb})`;
+    ctx.fillRect(sx + sz*0.15 - pulse, sy + sz*0.1 - pulse, sz*0.7+pulse*2, sz*0.85+pulse*2);
+    // armor plates
+    ctx.fillStyle = `rgb(${Math.floor(cr*0.5)},${Math.floor(cg*0.5)},${Math.floor(cb*0.5)})`;
+    ctx.fillRect(sx + sz*0.2, sy + sz*0.25, sz*0.25, sz*0.35);
+    ctx.fillRect(sx + sz*0.55, sy + sz*0.25, sz*0.25, sz*0.35);
+    // head
+    ctx.fillStyle = `rgb(${Math.floor(cr*1.1)},${Math.floor(cg*0.5)},${Math.floor(cb*0.5)})`;
+    ctx.fillRect(sx + sz*0.3, sy + sz*0.05, sz*0.4, sz*0.22);
+    // triple eyes
+    ctx.fillStyle = '#ff0000';
+    for (let i=0; i<3; i++) ctx.fillRect(sx + sz*(0.33+i*0.12), sy + sz*0.12, u*3, u*3);
+    // hp bar
+    const bw = sz*0.8, bx = sx + sz*0.1;
+    ctx.fillStyle = '#333';
+    ctx.fillRect(bx, sy - u*5, bw, u*3);
+    ctx.fillStyle = '#ff4444';
+    ctx.fillRect(bx, sy - u*5, bw*(e.hp/e.maxHp), u*3);
+  }
+
+  // HP bar for non-boss (small)
+  if (e.type !== 'boss') {
+    const bw = sz*0.6, bx = sx + sz*0.2;
+    ctx.fillStyle = '#222';
+    ctx.fillRect(bx, sy - u*4, bw, u*2.5);
+    const pct = e.hp/e.maxHp;
+    ctx.fillStyle = pct > 0.5 ? '#44ff44' : pct > 0.25 ? '#ffee22' : '#ff4444';
+    ctx.fillRect(bx, sy - u*4, bw*pct, u*2.5);
+  }
+}
+
+// ── GUN SPRITE ─────────────────────────────────────────────────────────────
+let muzzleTimer = 0;
+let hitVignette = 0;
+let reloadAnim = 0;
+
+function drawGun(dt) {
+  const vel = Math.hypot(player.velX, player.velY);
+  const bob = Math.sin(player.walkCycle * 5) * vel * 6;
+  const bobX = Math.cos(player.walkCycle * 2.5) * vel * 4;
+
+  player.recoilVel += -player.recoilY * 12 * dt;
+  player.recoilVel *= 0.78;
+  player.recoilY += player.recoilVel * dt;
+  if (Math.abs(player.recoilY) < 0.1 && Math.abs(player.recoilVel) < 0.1) { player.recoilY=0; player.recoilVel=0; }
+
+  const gx = W/2 + 120 + bobX;
+  const gy = H - 80 + bob + player.recoilY;
+
+  ctx.save();
+  ctx.translate(gx, gy);
+
+  // magazine / grip
+  ctx.fillStyle = '#2a2a2a';
+  ctx.fillRect(-10, 30, 16, 40);
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(-8, 32, 6, 36);
+
+  // receiver / body
+  ctx.fillStyle = '#333';
+  ctx.fillRect(-60, 10, 100, 22);
+  ctx.fillStyle = '#222';
+  ctx.fillRect(-58, 12, 96, 10);
+
+  // handguard
+  ctx.fillStyle = '#3a3a3a';
+  ctx.fillRect(-60, 14, 40, 18);
+  // rail
+  ctx.fillStyle = '#444';
+  for (let i=0; i<5; i++) ctx.fillRect(-56+i*8, 10, 4, 4);
+
+  // stock
+  ctx.fillStyle = '#222';
+  ctx.fillRect(36, 14, 26, 18);
+  ctx.fillRect(54, 20, 10, 10);
+
+  // barrel
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(-120, 16, 64, 10);
+  ctx.fillStyle = '#111';
+  ctx.fillRect(-122, 18, 8, 6);
+
+  // sight
+  ctx.fillStyle = '#444';
+  ctx.fillRect(-20, 6, 20, 6);
+  ctx.fillStyle = '#cc3300';
+  ctx.fillRect(-14, 4, 6, 4);
+
+  // muzzle flash
+  if (muzzleTimer > 0) {
+    const fs = 8 + Math.random()*8;
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(-128 - fs, 14 - fs/2, fs*2, fs);
+    ctx.fillStyle = '#ffe066';
+    ctx.fillRect(-128, 14, fs*1.5, 10);
+    ctx.fillStyle = 'rgba(255,200,0,0.4)';
+    ctx.beginPath();
+    ctx.arc(-128, 19, fs*1.2, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // ammo indicator (side of gun)
+  ctx.fillStyle = '#555';
+  ctx.font = 'bold 9px monospace';
+  ctx.fillText(`${player.ammo}`, -50, 38);
+
+  ctx.restore();
+
+  // tracer flash — screen-space line from gun barrel to crosshair
+  if (tracerTimer > 0) {
+    const a = tracerTimer / 0.07;
+    ctx.save();
+    ctx.globalAlpha = a * 0.6;
+    ctx.strokeStyle = '#ffe8a0';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(W/2 + 140, H - 60);
+    ctx.lineTo(W/2, H/2);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+// ── SKY + FLOOR ────────────────────────────────────────────────────────────
+function drawSkyFloor() {
+  // sky
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, PLAYER_H);
+  skyGrad.addColorStop(0, '#0a0a14');
+  skyGrad.addColorStop(1, '#1a1a2e');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, W, PLAYER_H);
+
+  // floor
+  const floorGrad = ctx.createLinearGradient(0, PLAYER_H, 0, H);
+  floorGrad.addColorStop(0, '#1a1410');
+  floorGrad.addColorStop(1, '#0d0a08');
+  ctx.fillStyle = floorGrad;
+  ctx.fillRect(0, PLAYER_H, W, PLAYER_H);
+}
+
+// ── HUD ────────────────────────────────────────────────────────────────────
+function drawHUD() {
+  // hit vignette
+  if (hitVignette > 0) {
+    const vg = ctx.createRadialGradient(W/2,H/2,H*0.2, W/2,H/2,H*0.9);
+    vg.addColorStop(0, 'rgba(180,0,0,0)');
+    vg.addColorStop(1, `rgba(180,0,0,${hitVignette*0.7})`);
+    ctx.fillStyle = vg;
+    ctx.fillRect(0,0,W,H);
+  }
+
+  // health
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillRect(16, H-46, 210, 30);
+  ctx.fillStyle = '#333';
+  ctx.fillRect(20, H-42, 200, 20);
+  const hpPct = player.hp / player.maxHp;
+  const hpCol = hpPct > 0.5 ? '#44cc44' : hpPct > 0.25 ? '#cccc22' : '#cc2222';
+  ctx.fillStyle = hpCol;
+  ctx.fillRect(20, H-42, 200*Math.max(0,hpPct), 20);
+  ctx.strokeStyle = '#888';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(20, H-42, 200, 20);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 11px monospace';
+  ctx.fillText(`HP  ${Math.max(0,player.hp)}`, 26, H-28);
+
+  // ammo
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillRect(W-140, H-46, 124, 30);
+  ctx.fillStyle = '#ffe066';
+  ctx.font = 'bold 18px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText(`${player.ammo}`, W-80, H-26);
+  ctx.fillStyle = '#888';
+  ctx.font = '13px monospace';
+  ctx.fillText(`/ ${player.reserve}`, W-20, H-26);
+  ctx.textAlign = 'left';
+
+  // score
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fillRect(W-170, 10, 160, 24);
+  ctx.fillStyle = '#ffe066';
+  ctx.font = 'bold 14px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText(`${player.score}`, W-14, 27);
+  ctx.textAlign = 'left';
+
+  // level
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fillRect(10, 10, 120, 24);
+  ctx.fillStyle = '#88ccff';
+  ctx.font = 'bold 13px monospace';
+  ctx.fillText(`LEVEL  ${currentLevel}`, 16, 27);
+
+  // enemies remaining
+  const alive = enemies.filter(e => !e.dying).length;
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fillRect(10, 38, 160, 22);
+  ctx.fillStyle = '#ff8888';
+  ctx.font = '11px monospace';
+  ctx.fillText(`ENEMIES  ${alive} / ${enemies.length}`, 16, 53);
+
+  // kill feed
+  for (let i=0; i<killFeed.length; i++) {
+    const k = killFeed[i];
+    const a = Math.min(1, k.time / 0.8);
+    ctx.globalAlpha = a;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(W-260, 40+i*20, 248, 18);
+    ctx.fillStyle = '#ffcc44';
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(k.text, W-14, 53+i*20);
+    ctx.textAlign = 'left';
+    ctx.globalAlpha = 1;
+  }
+
+  // crosshair
+  const spread = Math.hypot(player.velX, player.velY) * 8;
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+  ctx.lineWidth = 1.5;
+  const cx=W/2, cy=H/2, cg=5+spread, cl=8;
+  ctx.beginPath();
+  ctx.moveTo(cx-cg-cl,cy); ctx.lineTo(cx-cg,cy);
+  ctx.moveTo(cx+cg,cy);    ctx.lineTo(cx+cg+cl,cy);
+  ctx.moveTo(cx,cy-cg-cl); ctx.lineTo(cx,cy-cg);
+  ctx.moveTo(cx,cy+cg);    ctx.lineTo(cx,cy+cg+cl);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.fillRect(cx-1, cy-1, 2, 2);
+
+  // pointer lock reminder
+  if (!pointerLocked) {
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(W/2-140, H/2-20, 280, 40);
+    ctx.fillStyle = '#fff';
+    ctx.font = '14px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('CLICK TO CAPTURE MOUSE', W/2, H/2+5);
+    ctx.textAlign = 'left';
+  }
+
+  if (dryFireTimer > 0) {
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(W/2-80, H/2+30, 160, 28);
+    ctx.fillStyle = '#ff4444';
+    ctx.font = 'bold 13px monospace';
+    ctx.textAlign='center';
+    ctx.fillText('RELOAD  [ R ]', W/2, H/2+48);
+    ctx.textAlign='left';
+  }
+}
+
+// ── SCREENS ────────────────────────────────────────────────────────────────
+let blinkOn = true, blinkTimer = 0;
+
+function drawMenu() {
+  // fake corridor backdrop
+  drawSkyFloor();
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillRect(0,0,W,H);
+
+  // title
+  ctx.fillStyle = '#cc2200';
+  ctx.font = 'bold 90px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('F P S', W/2+3, 163);
+  ctx.fillStyle = '#ff4422';
+  ctx.fillText('F P S', W/2, 160);
+
+  ctx.fillStyle = '#888';
+  ctx.font = '14px monospace';
+  ctx.fillText('FIRST PERSON SHOOTER', W/2, 200);
+
+  const hi = parseInt(localStorage.getItem('fps_hi')||'0');
+  ctx.fillStyle = '#ffe066';
+  ctx.font = 'bold 15px monospace';
+  ctx.fillText(`HI-SCORE  ${hi}`, W/2, 250);
+
+  if (blinkOn) {
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 20px monospace';
+    ctx.fillText('CLICK  TO  PLAY', W/2, 320);
+  }
+
+  ctx.fillStyle = '#555';
+  ctx.font = '13px monospace';
+  ctx.fillText('MOVE: Arrow Keys / WASD', W/2, 390);
+  ctx.fillText('LOOK: Mouse     SHOOT: Left Click', W/2, 412);
+  ctx.fillText('RELOAD: R', W/2, 434);
+  ctx.textAlign='left';
+}
+
+function drawLevelAnnounce(timer) {
+  const a = Math.min(1, timer);
+  ctx.globalAlpha = a;
+  ctx.fillStyle = 'rgba(0,0,0,0.65)';
+  ctx.fillRect(W/2-200, H/2-60, 400, 110);
+  ctx.fillStyle = '#ffe066';
+  ctx.font = 'bold 42px monospace';
+  ctx.textAlign='center';
+  ctx.fillText(`LEVEL  ${currentLevel}`, W/2, H/2-10);
+  const def = getLevelConfig(currentLevel);
+  const types = def.enemies.reduce((a,e) => { a[e.t]=(a[e.t]||0)+1; return a; }, {});
+  const parts = Object.entries(types).map(([t,n])=>`${n} ${t.toUpperCase()}`).join('  ');
+  ctx.fillStyle = '#aaa';
+  ctx.font = '14px monospace';
+  ctx.fillText(parts, W/2, H/2+28);
+  ctx.globalAlpha=1; ctx.textAlign='left';
+}
+
+function drawLevelComplete() {
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = '#ffe066';
+  ctx.font = 'bold 48px monospace';
+  ctx.textAlign='center';
+  ctx.fillText(`LEVEL ${currentLevel} CLEAR`, W/2, H/2-20);
+  ctx.fillStyle = '#fff';
+  ctx.font = '20px monospace';
+  ctx.fillText(`SCORE  ${player.score}`, W/2, H/2+30);
+  ctx.fillStyle='#88ccff'; ctx.font='14px monospace';
+  ctx.fillText('Advancing...', W/2, H/2+65);
+  ctx.textAlign='left';
+}
+
+function drawGameOver() {
+  drawSkyFloor();
+  ctx.fillStyle='rgba(0,0,0,0.8)'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#cc2200'; ctx.font='bold 64px monospace'; ctx.textAlign='center';
+  ctx.fillText('MISSION  FAILED', W/2, H/2-50);
+  ctx.fillStyle='#fff'; ctx.font='22px monospace';
+  ctx.fillText(`FINAL SCORE  ${player.score}`, W/2, H/2+20);
+  const hi = parseInt(localStorage.getItem('fps_hi')||'0');
+  ctx.fillStyle='#ffe066'; ctx.font='16px monospace';
+  ctx.fillText(`HI-SCORE  ${hi}`, W/2, H/2+55);
+  if (blinkOn) { ctx.fillStyle='#aaa'; ctx.font='15px monospace'; ctx.fillText('PRESS  ENTER  TO  CONTINUE', W/2, H/2+95); }
+  ctx.textAlign='left';
+}
+
+// ── GAME STATE ─────────────────────────────────────────────────────────────
+let state = 'menu';
+let currentLevel = 1;
+let levelCompleteTimer = 0;
+let announceTimer = 0;
+
+function startLevel(n) {
+  currentLevel = n;
+  const cfg = getLevelConfig(n);
+  map = MAPS[cfg.mapIdx % MAPS.length];
+  mapRows = map.length; mapCols = map[0].length;
+  player.x = cfg.playerStart.x; player.y = cfg.playerStart.y; player.angle = cfg.playerStart.a;
+  player.hp = 100; player.velX=0; player.velY=0;
+  player.ammo = 30; player.reserve = 120;
+  player.invincible = 0; player.recoilY=0; player.recoilVel=0;
+  enemies.length = 0;
+  enemyBullets.length = 0; particles.length=0; killFeed.length=0;
+  for (const ed of cfg.enemies) enemies.push(new Enemy(ed.x+0.5, ed.y+0.5, ed.t));
+  announceTimer = 2.5;
+  state = 'announce';
+  hitVignette = 0;
+}
+
+function startGame() {
+  player.score = 0;
+  startLevel(1);
+}
+
+// ── PLAYER UPDATE ──────────────────────────────────────────────────────────
+function updatePlayer(dt) {
+  // rotation via arrow keys only when no pointer lock, otherwise mouse
+  if (!pointerLocked) {
+    if (keys['ArrowLeft'])  player.angle -= 1.8 * dt;
+    if (keys['ArrowRight']) player.angle += 1.8 * dt;
+  } else {
+    player.angle += mouseDX * 0.002;
+  }
+  mouseDX = 0;
+
+  let mx = 0, my = 0;
+  const fw = keys['ArrowUp']   || keys['KeyW'] || keys['w'];
+  const bk = keys['ArrowDown'] || keys['KeyS'] || keys['s'];
+  const sl = keys['ArrowLeft'] || keys['KeyA'] || keys['a'];
+  const sr = keys['ArrowRight']|| keys['KeyD'] || keys['d'];
+
+  if (!pointerLocked) {
+    // no strafe when locked; arrow keys used for look
+    if (fw) { mx += Math.cos(player.angle); my += Math.sin(player.angle); }
+    if (bk) { mx -= Math.cos(player.angle); my -= Math.sin(player.angle); }
+  } else {
+    if (fw) { mx += Math.cos(player.angle); my += Math.sin(player.angle); }
+    if (bk) { mx -= Math.cos(player.angle); my -= Math.sin(player.angle); }
+    if (sl) { mx += Math.cos(player.angle-Math.PI/2); my += Math.sin(player.angle-Math.PI/2); }
+    if (sr) { mx += Math.cos(player.angle+Math.PI/2); my += Math.sin(player.angle+Math.PI/2); }
+  }
+
+  const len = Math.hypot(mx,my);
+  if (len>0) { mx/=len; my/=len; }
+  player.velX = mx*3.5; player.velY = my*3.5;
+
+  const nx = player.x + player.velX*dt;
+  const ny = player.y + player.velY*dt;
+  if (!isWall(nx, player.y)) player.x = nx;
+  if (!isWall(player.x, ny)) player.y = ny;
+
+  if (len>0) player.walkCycle += dt * 3.5;
+
+  player.fireCooldown -= dt;
+  if (mouseClick && player.fireCooldown <= 0) {
+    fireHitscan();
+    player.fireCooldown = 0.28;
+  }
+  if ((keys['r']||keys['KeyR']) && player.ammo < 30 && player.reserve > 0) {
+    const need = 30 - player.ammo;
+    const take = Math.min(need, player.reserve);
+    player.ammo += take; player.reserve -= take;
+  }
+
+  player.invincible -= dt;
+  if (muzzleTimer > 0) muzzleTimer -= dt;
+  if (hitVignette > 0) hitVignette -= dt * 1.5;
+  if (dryFireTimer > 0) dryFireTimer -= dt;
+  mouseClick = false;
+}
+
+// ── MAIN LOOP ──────────────────────────────────────────────────────────────
+let last = 0;
+
+function loop(ts) {
+  const dt = Math.min((ts-last)/1000, 0.05);
+  last = ts;
+
+  blinkTimer += dt;
+  if (blinkTimer > 0.5) { blinkOn=!blinkOn; blinkTimer=0; }
+
+  for (let i=killFeed.length-1; i>=0; i--) {
+    killFeed[i].time -= dt;
+    if (killFeed[i].time <= 0) killFeed.splice(i,1);
+  }
+
+  if (state === 'menu') {
+    drawMenu();
+    if (canvasClicked) { canvasClicked = false; startGame(); }
+
+  } else if (state === 'announce') {
+    drawSkyFloor(); castRays();
+    renderSprites(); drawGun(dt);
+    drawHUD();
+    drawLevelAnnounce(announceTimer);
+    announceTimer -= dt;
+    if (announceTimer <= 0) state = 'playing';
+
+  } else if (state === 'playing') {
+    updatePlayer(dt);
+    for (const e of enemies) e.update(dt);
+    updateBullets(dt);
+    updateParticles(dt);
+    // remove fully dead
+    for (let i=enemies.length-1; i>=0; i--) {
+      if (enemies[i].dying && enemies[i].dyingTimer <= 0) enemies.splice(i,1);
+    }
+
+    drawSkyFloor();
+    castRays();
+    renderSprites();
+    drawGun(dt);
+    drawHUD();
+
+    if (player.hp <= 0) {
+      const hi = parseInt(localStorage.getItem('fps_hi')||'0');
+      if (player.score > hi) localStorage.setItem('fps_hi', player.score);
+      state = 'gameOver';
+    }
+    if (enemies.length === 0) {
+      levelCompleteTimer = 2.8;
+      state = 'levelComplete';
+    }
+
+  } else if (state === 'levelComplete') {
+    drawSkyFloor(); castRays(); drawGun(dt);
+    drawHUD(); drawLevelComplete();
+    levelCompleteTimer -= dt;
+    if (levelCompleteTimer <= 0) startLevel(currentLevel+1);
+
+  } else if (state === 'gameOver') {
+    drawGameOver();
+    if (keys['Enter']) { keys['Enter']=false; state='menu'; }
+  }
+
+  requestAnimationFrame(loop);
+}
+
+// init map size for menu background
+map = MAPS[0]; mapRows=map.length; mapCols=map[0].length;
+requestAnimationFrame(ts => { last=ts; requestAnimationFrame(loop); });
+</script>
+</body>
+</html>
