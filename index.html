@@ -328,6 +328,16 @@
   .habit-check-row .streak-badge { font-size: 11px; color: var(--ink-faint); font-family: -apple-system, sans-serif; }
   .habit-empty { color: var(--ink-faint); font-size: 13px; padding: 8px 0; }
 
+  .intero-block { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--rule-soft); }
+  .intero-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 8px; }
+  .intero-row { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; cursor: pointer; user-select: none; }
+  .intero-row .intero-check { width: 22px; height: 22px; border: 2px solid var(--rule); border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; transition: all .1s; flex-shrink: 0; margin-top: 1px; }
+  .intero-row.done .intero-check { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  .intero-row .intero-body { flex: 1; min-width: 0; }
+  .intero-row .intero-name { font-size: 14px; color: var(--ink); }
+  .intero-row.done .intero-name { color: var(--ink-faint); text-decoration: line-through; }
+  .intero-row .intero-detail { font-size: 11px; color: var(--ink-faint); margin-top: 2px; line-height: 1.4; }
+
   .mood-picker { display: flex; gap: 6px; align-items: center; }
   .mood-btn { flex: 1; padding: 10px 4px; border: 1px solid var(--rule); background: var(--paper); border-radius: 8px; cursor: pointer; font-size: 22px; text-align: center; }
   .mood-btn.active { border-color: var(--accent); background: var(--accent-bg); transform: scale(1.05); }
@@ -1027,8 +1037,21 @@ function emptyEntry(){
     notes: "",
     domains: [],
     spirals: [],
+    intero: {},
   };
 }
+const INTERO_EXERCISES = {
+  morning: [
+    { key: "sigh",  name: "Physiological sigh",  detail: "2 quick nasal inhales → long mouth exhale, repeat 3×. Fastest way to drop arousal." },
+    { key: "scan",  name: "Body scan",           detail: "Head → toe, 2 min. Just notice sensations; no fixing." },
+    { key: "heart", name: "Hand on heart",       detail: "Hand on chest, feel your heartbeat for 60 seconds." },
+  ],
+  evening: [
+    { key: "scan",   name: "Body scan",          detail: "Head → toe, release any tension you find." },
+    { key: "breath", name: "4-in / 8-out breath",detail: "Inhale 4 sec, exhale 8 sec, ~1 min. Activates parasympathetic." },
+    { key: "ground", name: "5-4-3-2-1 grounding",detail: "Name 5 see · 4 hear · 3 touch · 2 smell · 1 taste." },
+  ],
+};
 function getEntry(iso){
   const e = state.entries[iso];
   if (!e) return emptyEntry();
@@ -1049,7 +1072,8 @@ function isEmptyEntry(e){
   const hasSched = Object.values(e.schedule||{}).some(v => v && v.trim());
   const hasDomains = Array.isArray(e.domains) && e.domains.length > 0;
   const hasSpirals = Array.isArray(e.spirals) && e.spirals.length > 0;
-  return !txt && !hasSched && e.mood == null && !hasDomains && !hasSpirals;
+  const hasIntero = e.intero && Object.values(e.intero).some(v => v);
+  return !txt && !hasSched && e.mood == null && !hasDomains && !hasSpirals && !hasIntero;
 }
 
 /* ════════════════════════════════════════════════════════
@@ -1285,6 +1309,7 @@ function renderToday(){
   const aff = el("input"); aff.type="text"; aff.className="auto-input"; aff.value=entry.affirmation; aff.placeholder="I am…";
   aff.oninput = ()=>{ entry.affirmation=aff.value; persist(); };
   affF.appendChild(aff); morning.appendChild(affF);
+  morning.appendChild(interoBlock(entry, "morning", persist));
   row1.appendChild(morning);
 
   const planner = el("div","card");
@@ -1437,6 +1462,7 @@ function renderToday(){
   ev.appendChild(textarea("Lessons learned", entry.lessons, v=>{ entry.lessons=v; persist(); }));
   ev.appendChild(textarea("Could've been better", entry.couldBeBetter, v=>{ entry.couldBeBetter=v; persist(); }));
   evening.appendChild(ev);
+  evening.appendChild(interoBlock(entry, "evening", persist));
   wrap.appendChild(evening);
 
   const notesCard = el("div","card"); notesCard.style.marginTop="14px";
@@ -1446,6 +1472,31 @@ function renderToday(){
   ta.oninput = ()=>{ entry.notes=ta.value; persist(); };
   notesCard.appendChild(ta);
   wrap.appendChild(notesCard);
+  return wrap;
+}
+
+function interoBlock(entry, section, persist){
+  if (!entry.intero || typeof entry.intero !== "object") entry.intero = {};
+  const wrap = el("div","intero-block");
+  const lbl = el("div","intero-label");
+  lbl.textContent = section === "morning" ? "Body check-in (start the day)" : "Body check-in (wind down)";
+  wrap.appendChild(lbl);
+  INTERO_EXERCISES[section].forEach(ex=>{
+    const id = `${section}_${ex.key}`;
+    const done = !!entry.intero[id];
+    const row = el("div","intero-row" + (done ? " done" : ""));
+    const box = el("div","intero-check"); if (done) box.textContent = "✓";
+    row.appendChild(box);
+    const body = el("div","intero-body");
+    body.appendChild(el("div","intero-name", ex.name));
+    body.appendChild(el("div","intero-detail", ex.detail));
+    row.appendChild(body);
+    row.onclick = ()=>{
+      entry.intero[id] = !entry.intero[id];
+      persist(); render();
+    };
+    wrap.appendChild(row);
+  });
   return wrap;
 }
 

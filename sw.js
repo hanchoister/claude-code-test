@@ -1,5 +1,5 @@
 /* Daily Journal · service worker · network-first for HTML, cache-first for assets */
-const VERSION = "v8";
+const VERSION = "v9";
 const CACHE = `journal-${VERSION}`;
 const ASSETS = [
   "./",
