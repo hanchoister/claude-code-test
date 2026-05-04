@@ -1600,8 +1600,10 @@ function renderHabits(){
 
   const active = state.habits.filter(h=>!h.archivedAt);
   if (!active.length){
-    const c = el("div","card"); c.appendChild(el("div","empty-state","No habits yet. Add one to start tracking streaks."));
-    wrap.appendChild(c); return wrap;
+    const c = el("div","card"); c.appendChild(el("div","empty-state","No habits yet. Add one to start tracking streaks, or pick from the BA plan suggestions below."));
+    wrap.appendChild(c);
+    appendInlineSuggestions(wrap);
+    return wrap;
   }
 
   const stripCard = el("div","card");
@@ -1642,7 +1644,24 @@ function renderHabits(){
   });
   g.appendChild(tbl); grid.appendChild(g);
   wrap.appendChild(grid);
+
+  appendInlineSuggestions(wrap);
   return wrap;
+}
+
+function appendInlineSuggestions(wrap){
+  const sugCard = el("div","card"); sugCard.style.marginTop="14px";
+  const sugHead = h3("Suggestions from your BA plan");
+  const remaining = SUGGESTED_HABITS.filter(s=>!isHabitAlreadyAdded(s.name)).length;
+  sugHead.appendChild(el("span","count", `(${remaining} not yet added)`));
+  sugCard.appendChild(sugHead);
+  const sugFilters = el("div");
+  sugFilters.style.cssText = "display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;";
+  sugCard.appendChild(sugFilters);
+  const sugList = el("div");
+  sugCard.appendChild(sugList);
+  renderSuggestionsList(sugFilters, sugList);
+  wrap.appendChild(sugCard);
 }
 
 /* ───────── Values ───────── */
@@ -2001,28 +2020,28 @@ function openSuggestionsModal(){
 }
 function closeSuggestionsModal(){ $("modal-suggest-bg").classList.remove("show"); }
 
-function renderSuggestionsList(){
+function renderSuggestionsList(filtersEl, listEl){
+  filtersEl = filtersEl || $("suggest-filters");
+  listEl = listEl || $("suggest-list");
   // Filters
-  const filters = $("suggest-filters");
-  filters.innerHTML = "";
+  filtersEl.innerHTML = "";
   const allBtn = el("button","suggest-filter"+(suggestFilter==null?" active":""),"All");
-  allBtn.onclick = ()=>{ suggestFilter = null; renderSuggestionsList(); };
-  filters.appendChild(allBtn);
+  allBtn.onclick = ()=>{ suggestFilter = null; renderSuggestionsList(filtersEl, listEl); render(); };
+  filtersEl.appendChild(allBtn);
   HABIT_CATEGORIES.forEach(c=>{
     const b = el("button","suggest-filter"+(suggestFilter===c.key?" active":""), c.short_label);
-    b.onclick = ()=>{ suggestFilter = c.key; renderSuggestionsList(); };
-    filters.appendChild(b);
+    b.onclick = ()=>{ suggestFilter = c.key; renderSuggestionsList(filtersEl, listEl); render(); };
+    filtersEl.appendChild(b);
   });
 
   // List grouped by category
-  const list = $("suggest-list");
-  list.innerHTML = "";
+  listEl.innerHTML = "";
   HABIT_CATEGORIES.forEach(cat=>{
     if (suggestFilter && suggestFilter !== cat.key) return;
     const items = SUGGESTED_HABITS.filter(s => s.category === cat.key);
     if (!items.length) return;
     const head = el("div","suggest-section-head", cat.label);
-    list.appendChild(head);
+    listEl.appendChild(head);
     items.forEach(s=>{
       const row = el("div","suggest-row");
       const added = isHabitAlreadyAdded(s.name);
@@ -2038,11 +2057,14 @@ function renderSuggestionsList(){
       const btn = el("button","sg-add", added ? "Added" : "Add");
       if (!added){
         btn.onclick = ()=>{
-          if (addSuggestedHabit(s)) renderSuggestionsList();
+          if (addSuggestedHabit(s)){
+            renderSuggestionsList(filtersEl, listEl);
+            render();
+          }
         };
       }
       row.appendChild(btn);
-      list.appendChild(row);
+      listEl.appendChild(row);
     });
   });
 }
