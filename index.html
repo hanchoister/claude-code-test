@@ -1051,9 +1051,9 @@ const INTERO_PROMPTS = {
     { key: "need",    label: "One thing I need today",         placeholder: "30-min walk after lunch, 10-min break at 3pm, text my sister back…" },
   ],
   evening: [
-    { key: "emotion", label: "An emotion I'm feeling right now", placeholder: "tender, relieved, edgy…" },
-    { key: "body",    label: "Where I feel it in my body",       placeholder: "throat, belly, shoulders…" },
-    { key: "need",    label: "What my body needed today",        placeholder: "sleep, slowness, food…" },
+    { key: "emotion", label: "Emotion I'm feeling",             placeholder: "tender, relieved, edgy…" },
+    { key: "body",    label: "Something I notice in my body",   placeholder: "tight chest, heavy legs…" },
+    { key: "need",    label: "One thing I need tomorrow",       placeholder: "8 hrs of sleep, walk before work, no back-to-back meetings…" },
   ],
 };
 const INTERO_EXERCISES = {
@@ -1321,7 +1321,6 @@ function renderToday(){
   const morning = el("div","card");
   morning.appendChild(h3("☀ Morning"));
   morning.appendChild(numList("I am grateful for…", entry.gratitude, v=>{ entry.gratitude=v; persist(); }));
-  morning.appendChild(numList("What would make today great?", entry.intentions, v=>{ entry.intentions=v; persist(); }));
   const affF = el("div","field"); affF.appendChild(labelEl("Daily affirmation"));
   const aff = el("input"); aff.type="text"; aff.className="auto-input"; aff.value=entry.affirmation; aff.placeholder="I am…";
   aff.oninput = ()=>{ entry.affirmation=aff.value; persist(); };
