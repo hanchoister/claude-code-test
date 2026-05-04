@@ -1495,7 +1495,33 @@ function renderToday(){
   row1.appendChild(planner);
   wrap.appendChild(row1);
 
-  /* TRAP→TRAC */
+  const sched = el("div","card"); sched.style.marginTop="14px";
+  const schedHead = h3("Schedule");
+  const addHabitBtn = el("button","btn ghost","+ Add habit");
+  addHabitBtn.style.cssText = "margin-left:auto;font-size:12px;";
+  addHabitBtn.onclick = ()=>openHabitModal(null);
+  schedHead.appendChild(addHabitBtn);
+  const sugBtn = el("button","btn ghost","✨ Suggestions");
+  sugBtn.style.cssText = "font-size:12px;";
+  sugBtn.title = "Add habits from your BA plan";
+  sugBtn.onclick = ()=>openSuggestionsModal();
+  schedHead.appendChild(sugBtn);
+  sched.appendChild(schedHead);
+  const sg = el("div","schedule-grid");
+  for (let h=6; h<=22; h++){
+    sg.appendChild(el("div","hr",`${h%12===0?12:h%12}${h<12?" AM":" PM"}`));
+    const sl = el("div","sl");
+    const pins = occurrencesOnDate(iso).filter(o => o.chore.time && Number(o.chore.time.split(":")[0])===h);
+    pins.forEach(o=>{ const p=el("span","chore-pin",o.chore.title); p.onclick=()=>openChoreModal(o.chore.id); sl.appendChild(p); });
+    const inp = el("input"); inp.type="text"; inp.className="auto-input"; inp.value=entry.schedule[String(h)]||""; inp.placeholder="…";
+    inp.oninput = ()=>{ entry.schedule[String(h)]=inp.value; persist(); };
+    sl.appendChild(inp);
+    sg.appendChild(sl);
+  }
+  sched.appendChild(sg);
+  wrap.appendChild(sched);
+
+  /* TRAP→TRAC (above Evening reflection) */
   const trapCard = el("div","card"); trapCard.style.marginTop="14px";
   const sHead = el("div"); sHead.style.cssText = "display:flex;align-items:center;gap:10px;flex-wrap:wrap;";
   const sTitle = el("div"); sTitle.style.cssText="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);flex:1;min-width:120px;";
@@ -1536,54 +1562,6 @@ function renderToday(){
     trapCard.appendChild(em);
   }
   wrap.appendChild(trapCard);
-
-  const sched = el("div","card"); sched.style.marginTop="14px";
-  const schedHead = h3("Schedule");
-  const addHabitBtn = el("button","btn ghost","+ Add habit");
-  addHabitBtn.style.cssText = "margin-left:auto;font-size:12px;";
-  addHabitBtn.onclick = ()=>openHabitModal(null);
-  schedHead.appendChild(addHabitBtn);
-  const sugBtn = el("button","btn ghost","✨ Suggestions");
-  sugBtn.style.cssText = "font-size:12px;";
-  sugBtn.title = "Add habits from your BA plan";
-  sugBtn.onclick = ()=>openSuggestionsModal();
-  schedHead.appendChild(sugBtn);
-  sched.appendChild(schedHead);
-  const sg = el("div","schedule-grid");
-  for (let h=6; h<=22; h++){
-    sg.appendChild(el("div","hr",`${h%12===0?12:h%12}${h<12?" AM":" PM"}`));
-    const sl = el("div","sl");
-    const pins = occurrencesOnDate(iso).filter(o => o.chore.time && Number(o.chore.time.split(":")[0])===h);
-    pins.forEach(o=>{ const p=el("span","chore-pin",o.chore.title); p.onclick=()=>openChoreModal(o.chore.id); sl.appendChild(p); });
-    const inp = el("input"); inp.type="text"; inp.className="auto-input"; inp.value=entry.schedule[String(h)]||""; inp.placeholder="…";
-    inp.oninput = ()=>{ entry.schedule[String(h)]=inp.value; persist(); };
-    sl.appendChild(inp);
-    sg.appendChild(sl);
-  }
-  sched.appendChild(sg);
-  wrap.appendChild(sched);
-
-  /* Life domains touched today (above Evening reflection) */
-  const domCard = el("div","card"); domCard.style.marginTop="14px";
-  domCard.appendChild(h3("Life domains touched today"));
-  const domSubtitle = el("div","muted","Tap any domain your activity touched today.");
-  domSubtitle.style.cssText = "font-size:12px;margin-bottom:10px;line-height:1.5;";
-  domCard.appendChild(domSubtitle);
-  if (!Array.isArray(entry.domains)) entry.domains = [];
-  const domRow = el("div","domain-chips");
-  DOMAINS.forEach(dn=>{
-    const chip = el("button","domain-chip");
-    if (entry.domains.includes(dn.key)) chip.classList.add("active");
-    chip.appendChild(el("span","",dn.short));
-    chip.onclick = ()=>{
-      const i = entry.domains.indexOf(dn.key);
-      if (i>=0) entry.domains.splice(i,1); else entry.domains.push(dn.key);
-      persist(); render();
-    };
-    domRow.appendChild(chip);
-  });
-  domCard.appendChild(domRow);
-  wrap.appendChild(domCard);
 
   const evening = el("div","card"); evening.style.marginTop="14px";
   evening.appendChild(h3("🌙 Evening reflection"));
