@@ -370,6 +370,117 @@
   .conflict-item .ci-actions button { flex: 1; min-width: 100px; }
   .conflict-item.resolved { opacity: .6; }
 
+  /* Values */
+  .value-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 820px) { .value-grid { grid-template-columns: 1fr; } }
+  .value-card { background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; }
+  .value-card .vc-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .value-card .vc-label { flex: 1; font-size: 13px; font-weight: 700; color: var(--accent-deep); letter-spacing: .5px; text-transform: uppercase; }
+  .value-card .vc-rating { font-size: 11px; color: var(--ink-soft); font-family: -apple-system, sans-serif; font-weight: 700; }
+  .value-card textarea { width: 100%; min-height: 84px; border: 1px dashed var(--rule); border-radius: 4px; padding: 8px 10px; background: #fffaf0; font-family: inherit; font-size: 13px; line-height: 1.55; resize: vertical; color: var(--ink); }
+  .value-card textarea:focus { outline: none; border-color: var(--accent); border-style: solid; background: #fff; }
+  .value-card .vc-slider { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .value-card .vc-slider input[type="range"] { flex: 1; accent-color: var(--accent); }
+  .value-card .vc-stars { font-size: 10px; color: var(--ink-faint); letter-spacing: 1.2px; text-transform: uppercase; font-weight: 700; }
+
+  /* Domain chips */
+  .domain-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .domain-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    border: 1px solid var(--rule); background: var(--paper);
+    padding: 7px 12px; border-radius: 999px; font-size: 12px;
+    cursor: pointer; user-select: none; color: var(--ink-soft);
+    font-family: inherit;
+  }
+  .domain-chip:hover { background: #fbf6ea; }
+  .domain-chip.active { background: var(--accent-bg); color: var(--accent-deep); border-color: var(--accent); font-weight: 600; }
+  .domain-chip .rate { font-size: 10px; color: var(--ink-faint); font-family: -apple-system, sans-serif; font-weight: 700; }
+  .domain-chip.active .rate { color: var(--accent-deep); }
+
+  .habit-domain-tag {
+    font-size: 9px; color: var(--accent-deep); background: var(--accent-bg);
+    padding: 2px 7px; border-radius: 999px; font-weight: 700;
+    letter-spacing: .5px; text-transform: uppercase;
+    font-family: -apple-system, sans-serif;
+  }
+  .habit-cat-tag {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    font-size: 9px; font-weight: 800; color: var(--ink);
+    font-family: -apple-system, sans-serif;
+  }
+
+  /* Spiral */
+  .spiral-section { margin-top: 14px; }
+  .spiral-fab {
+    background: #f7dcd8; color: var(--bad); border: 1px solid #e9bdb5;
+    font-weight: 700; font-size: 12px; padding: 8px 14px;
+    border-radius: 999px; cursor: pointer; letter-spacing: .5px;
+    font-family: inherit;
+  }
+  .spiral-fab:hover { background: #f1cbc4; }
+  .spiral-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .spiral-row {
+    display: flex; gap: 10px; align-items: flex-start; padding: 9px 11px;
+    background: #fdf3f0; border: 1px solid #f0d5cf; border-radius: 6px;
+    font-size: 13px;
+  }
+  .spiral-row .sp-time { color: var(--bad); font-size: 11px; min-width: 56px; font-family: -apple-system, sans-serif; font-weight: 700; padding-top: 2px; }
+  .spiral-row .sp-body { flex: 1; }
+  .spiral-row .sp-trigger { color: var(--ink); font-weight: 600; }
+  .spiral-row .sp-response { color: var(--ink-soft); font-size: 12px; margin-top: 2px; }
+  .spiral-row .sp-action { color: var(--accent-deep); font-size: 12px; margin-top: 3px; font-style: italic; font-weight: 600; }
+  .spiral-row .sp-del { background: transparent; border: none; cursor: pointer; color: var(--ink-faint); padding: 0 4px; font-size: 18px; line-height: 1; }
+  .spiral-row .sp-del:hover { color: var(--bad); }
+
+  /* Suggestions modal */
+  .suggest-row {
+    display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center;
+    padding: 9px 12px; background: var(--paper); border: 1px solid var(--rule-soft);
+    border-radius: 6px; margin-bottom: 6px; font-size: 13px;
+  }
+  .suggest-row.added { opacity: 0.55; }
+  .suggest-row .sg-cat {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%;
+    font-size: 10px; font-weight: 700; color: var(--ink);
+  }
+  .suggest-row .sg-name { color: var(--ink); }
+  .suggest-row .sg-meta { font-size: 10px; color: var(--ink-faint); margin-top: 2px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .suggest-row .sg-add {
+    border: none; background: var(--accent); color: white; padding: 5px 12px;
+    border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer;
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .suggest-row.added .sg-add { background: var(--rule-soft); color: var(--ink-faint); cursor: default; }
+  .suggest-section-head {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--ink-soft); margin: 14px 0 6px;
+  }
+  .suggest-filter {
+    padding: 4px 10px; border: 1px solid var(--rule-soft); background: var(--paper);
+    border-radius: 12px; font-size: 11px; cursor: pointer; font-weight: 600;
+    color: var(--ink-soft); letter-spacing: 0.5px;
+  }
+  .suggest-filter.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* Rules modal */
+  .rules-row { padding: 10px 12px; background: var(--paper); border: 1px solid var(--rule-soft); border-radius: 6px; margin-bottom: 8px; }
+  .rules-row .rules-name { font-size: 13px; font-weight: 700; color: var(--accent-deep); margin-bottom: 4px; }
+  .rules-row .rules-body { font-size: 12px; color: var(--ink-soft); line-height: 1.5; }
+
+  /* Domain activation in reviews */
+  .domain-activation { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+  .domain-activation .da-row {
+    display: grid; grid-template-columns: 1fr 110px;
+    gap: 10px; align-items: center; padding: 9px 12px;
+    background: var(--paper); border: 1px solid var(--rule-soft);
+    border-radius: 6px; font-size: 13px;
+  }
+  .domain-activation .da-row.neglected { background: #fef4ec; border-color: #f0d5b6; }
+  .domain-activation .da-row.neglected .da-name { color: #7a4a1e; font-weight: 700; }
+  .domain-activation .da-count { color: var(--ink-soft); font-size: 12px; text-align: right; font-family: -apple-system, sans-serif; }
+
   /* Mobile tweaks */
   @media (max-width: 600px) {
     header.topbar { padding: 10px 14px; gap: 8px; }
@@ -405,6 +516,7 @@
     <button data-view="today">Today</button>
     <button data-view="calendar">Cal</button>
     <button data-view="habits">Habits</button>
+    <button data-view="plan">Plan</button>
     <button data-view="reviews">Review</button>
   </nav>
   <button class="btn" id="sync-btn" title="Sync status"><span class="sync-dot"></span><span class="sync-label">…</span></button>
@@ -484,11 +596,87 @@
     <div class="m-head"><h3 id="habit-modal-title">New habit</h3><button class="icon-btn" id="habit-modal-close">×</button></div>
     <div class="m-body">
       <div class="field"><label>Name</label><input type="text" id="hf-name" placeholder="e.g. Drink water"></div>
+      <div class="field"><label>Life domain (optional)</label>
+        <select id="hf-domain">
+          <option value="">— None —</option>
+          <option value="health">Health & body</option>
+          <option value="work">Work / career / school</option>
+          <option value="relationships">Relationships</option>
+          <option value="creativity">Creativity & play</option>
+          <option value="growth">Mind / spirit / growth</option>
+          <option value="home">Home & environment</option>
+          <option value="money">Money & responsibilities</option>
+          <option value="community">Community / contribution</option>
+        </select>
+      </div>
+      <div class="field"><label>BA category (optional)</label>
+        <select id="hf-category">
+          <option value="">— None —</option>
+          <option value="pleasure">Pleasure — small joys, low-stakes</option>
+          <option value="mastery">Mastery — sense of accomplishment</option>
+          <option value="connection">Connection — anti-isolation, in any size</option>
+          <option value="body">Body & Self-Care — the foundation</option>
+          <option value="meaning">Meaning — values-aligned, even tiny versions</option>
+        </select>
+      </div>
     </div>
     <div class="m-foot">
       <button class="btn danger hide" id="habit-modal-delete">Delete</button>
       <button class="btn ghost" id="habit-modal-cancel">Cancel</button>
       <button class="btn primary" id="habit-modal-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRAP→TRAC modal -->
+<div class="modal-bg" id="modal-spiral-bg">
+  <div class="modal">
+    <div class="m-head"><h3>TRAP → TRAC</h3><button class="icon-btn" id="spiral-modal-close">×</button></div>
+    <div class="m-body">
+      <p class="muted" style="font-size:12px;margin-bottom:12px;line-height:1.5;">Catch the avoidance pattern. Substitute one tiny step toward, instead of away.</p>
+      <div class="field"><label>Trigger — what set this off?</label>
+        <input type="text" id="sp-trigger" placeholder="e.g. email from boss, gym day on calendar">
+      </div>
+      <div class="field"><label>Response — what did you feel?</label>
+        <input type="text" id="sp-response" placeholder="e.g. anxiety, dread, shame spiral">
+      </div>
+      <div class="field"><label>Alternative coping — small step toward, instead of away</label>
+        <input type="text" id="sp-action" placeholder="e.g. read once, draft 1 sentence, walk 5 min">
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn ghost" id="spiral-modal-cancel">Cancel</button>
+      <button class="btn primary" id="spiral-modal-save">Log</button>
+    </div>
+  </div>
+</div>
+
+<!-- Habit suggestions modal -->
+<div class="modal-bg" id="modal-suggest-bg">
+  <div class="modal" style="max-width:640px;">
+    <div class="m-head"><h3>Habit suggestions · BA plan</h3><button class="icon-btn" id="suggest-modal-close">×</button></div>
+    <div class="m-body">
+      <p class="muted" style="font-size:12px;margin-bottom:12px;line-height:1.5;">Activities pulled from Parts 1–4 of your BA plan. Tap any to add. Already-added suggestions are marked.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;" id="suggest-filters"></div>
+      <div id="suggest-list"></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn ghost" id="suggest-add-all">Add all not yet added</button>
+      <button class="btn primary" id="suggest-modal-done">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rules-when-motivation-is-gone modal -->
+<div class="modal-bg" id="modal-rules-bg">
+  <div class="modal">
+    <div class="m-head"><h3>Rules for when motivation is gone</h3><button class="icon-btn" id="rules-modal-close">×</button></div>
+    <div class="m-body">
+      <p class="muted" style="font-size:12px;margin-bottom:12px;line-height:1.5;">For the days when this whole document feels like too much. Read this list. Pick one rule. That's the day's win.</p>
+      <div id="rules-list"></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn primary" id="rules-modal-ok">Got it</button>
     </div>
   </div>
 </div>
@@ -552,10 +740,144 @@ const K_REVIEWS   = "reviews_v1";
 const K_DISMISSED = "chores_dismissed_v1";
 const K_SYNC      = "sync_v1";
 const K_SYNC_NUDGED = "sync_nudged_v1";
+const K_VALUES    = "values_v2";
+const K_IDENTITY  = "identity_v1";
 
 const DOW_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const MOOD_EMOJI = ["","😞","😕","😐","🙂","😄"];
+
+const DOMAINS = [
+  { key:"health",        label:"Health & body",           short:"Health" },
+  { key:"work",          label:"Work / career / school",  short:"Work" },
+  { key:"relationships", label:"Relationships",           short:"Relationships" },
+  { key:"creativity",    label:"Creativity & play",       short:"Creativity" },
+  { key:"growth",        label:"Mind / spirit / growth",  short:"Growth" },
+  { key:"home",          label:"Home & environment",      short:"Home" },
+  { key:"money",         label:"Money & responsibilities",short:"Money" },
+  { key:"community",     label:"Community / contribution",short:"Community" },
+];
+const DOMAIN_BY_KEY = Object.fromEntries(DOMAINS.map(d=>[d.key, d]));
+
+const OLD_DOMAIN_MAP = {
+  physical:"health", family:"relationships", intimate:"relationships",
+  citizenship:"community", mental:"growth", friendship:"relationships",
+  spirituality:"growth", hobbies:"creativity", education:"growth", career:"work",
+};
+
+const DEFAULT_VALUE_SUMMARIES = {
+  health:        "I want to feel strong again and have my ideal body (toned with hourglass figure - NOT skinny), sleep 7 hours a night CONSISTENTLY, eat healthy, limit caffeine, nicotine, and weed intake.",
+  work:          "I want to do work I respect and feel fulfilled by. I want to stop dreading Mondays/living for the weekends. I want to build something that outlives me and builds a strong foundation for my future family.",
+  relationships: "I want to be the kind of friend who doesn't need external validation/doesn't expect anything in return. I want to be the type of person who's confident in what I can offer and loyal.",
+  creativity:    "I want to make at least one thing a week, even if it's small or bad. I want to practice hobbies/skills I'm not good at and be consumed by the practice.",
+  growth:        "I want to read more, scroll less, and feel less anxious in quiet moments. I want to be more okay with being by myself.",
+  home:          "I want my space to feel more like a comforting place for me instead of a place I hide out in or feel guilty spending time in.",
+  money:         "I want to know where my money goes and stop avoiding my bank app. I want to limit the amount of non-essential expenses and spend more money on investments that will help me build my wealth.",
+  community:     "I want to volunteer once a month or contribute to something bigger than me. I want to be a part of any community, team, or group I feel aligned with/resonates with me.",
+};
+
+const DEFAULT_IDENTITY = [
+  "I am someone who follows through and holds myself to the highest standard bc I want the best for and love myself. I take care of myself, keep my word to myself, show up for the people I love, and am creating an empire to pass on to my family.",
+  "I'm patient, kind, and compassionate with myself. I let myself feel my emotions in a healthy way if I need to before doing the things I need to progress through.",
+  "I keep healthy boundaries with others but also myself. I don't let any behaviors, actions, or words pass by if they've crossed the line and can communicate my feelings clearly and respectfully.",
+  "I am true to myself and channel my inner child again. I exist with curiosity and let my ambition lead me down a path of elite success and fulfillment. I build success to share my blessings with others and inspire them in whatever they need.",
+  "I am grounded in my spirituality and don't try to control everything. I allow things to happen to me because I know I can handle anything that comes my way and have the strength, wisdom, and ability to move through difficult situations with grace. I have no doubt.",
+];
+
+const HABIT_CATEGORIES = [
+  { key:"pleasure",   label:"Pleasure — small joys, low-stakes",          short_label:"Pleasure",   short:"P", color:"#f6d6d6" },
+  { key:"mastery",    label:"Mastery — sense of accomplishment",          short_label:"Mastery",    short:"M", color:"#dfe7d8" },
+  { key:"connection", label:"Connection — anti-isolation, in any size",   short_label:"Connection", short:"C", color:"#d8e0ef" },
+  { key:"body",       label:"Body & Self-Care — the foundation",          short_label:"Body",       short:"B", color:"#f4e4cf" },
+  { key:"meaning",    label:"Meaning — values-aligned, even tiny versions", short_label:"Meaning",  short:"E", color:"#e9dcef" },
+];
+const HABIT_CAT_BY_KEY = Object.fromEntries(HABIT_CATEGORIES.map(c=>[c.key, c]));
+
+/* Activities from BA Plan Parts 1-4. Each has category + domain. */
+const SUGGESTED_HABITS = [
+  // Part 2.A — Pleasure
+  { name:"Drink a fun drink (no water/alcohol)",        category:"pleasure",   domain:"home" },
+  { name:"20 minutes outside, no phone",                 category:"pleasure",   domain:"growth" },
+  { name:"Comfort movie + snacks, no guilt",             category:"pleasure",   domain:"creativity" },
+  { name:"Favorite playlist on full volume while cooking", category:"pleasure", domain:"home" },
+  { name:"Pinterest scroll / online window shopping",    category:"pleasure",   domain:"creativity" },
+
+  // Part 2.B — Mastery
+  { name:"Make bed within 5 min of waking",              category:"mastery",    domain:"home" },
+  { name:"Wash one sink of dishes",                      category:"mastery",    domain:"home" },
+  { name:"25-min Pomodoro work block",                   category:"mastery",    domain:"work" },
+  { name:"Reply to one avoided email",                   category:"mastery",    domain:"work" },
+  { name:"Tidy one area in bedroom",                     category:"mastery",    domain:"home" },
+  { name:"Sort clothes & post on Depop",                 category:"mastery",    domain:"money" },
+  { name:"Learn something new about a career I want",    category:"mastery",    domain:"work" },
+  { name:"Practice a skill I'm bad at (with self-compassion)", category:"mastery", domain:"growth" },
+  // Part 3 ladder steps (treated as Mastery wins)
+  { name:"Pick out workout clothes",                     category:"mastery",    domain:"health" },
+  { name:"Plan workout / book a class",                  category:"mastery",    domain:"health" },
+  { name:"Stretch / dynamic warm-up",                    category:"mastery",    domain:"health" },
+  { name:"Make to-do list with priorities",              category:"mastery",    domain:"work" },
+  { name:"Ask AI to break a stuck task into steps",      category:"mastery",    domain:"work" },
+
+  // Part 2.C — Connection
+  { name:"Text one friend 'thinking of you, no reply needed'", category:"connection", domain:"relationships" },
+  { name:"Check in with one family member",              category:"connection", domain:"relationships" },
+  { name:"Work from a coffee shop",                      category:"connection", domain:"community" },
+  { name:"Schedule a phone call with a specific friend", category:"connection", domain:"relationships" },
+  { name:"Reply to an old group chat",                   category:"connection", domain:"relationships" },
+  { name:"Say hi to neighbor / barista / doorman by name", category:"connection", domain:"community" },
+  { name:"Cooking night with roommates",                 category:"connection", domain:"relationships" },
+  { name:"Respond to texts within 2 days",               category:"connection", domain:"relationships" },
+  { name:"Talk to someone new",                          category:"connection", domain:"community" },
+  // Part 1
+  { name:"Volunteer (NY Cares, soup kitchen, cat cafe)", category:"connection", domain:"community" },
+  { name:"Call a friend",                                category:"connection", domain:"relationships" },
+
+  // Part 2.D — Body
+  { name:"5-min stretch after waking",                   category:"body",       domain:"health" },
+  { name:"Drink a full glass of water before coffee",    category:"body",       domain:"health" },
+  { name:"Get morning sunlight within 1 hr of waking",   category:"body",       domain:"health" },
+  { name:"Eat a real meal (not just snacks)",            category:"body",       domain:"health" },
+  { name:"30-min walk / workout",                        category:"body",       domain:"health" },
+  { name:"Shower and put on real clothes",               category:"body",       domain:"health" },
+  { name:"In bed by 10:30pm, phone in another room",     category:"body",       domain:"health" },
+  // Part 1 + Part 4
+  { name:"Wake up at the same time every day",           category:"body",       domain:"health" },
+  { name:"15-min walk outside or treadmill",             category:"body",       domain:"health" },
+  { name:"Workout (3 exercises × 4 sets × 8–10 reps)",   category:"body",       domain:"health" },
+
+  // Part 2.E — Meaning
+  { name:"Sketch for 10 minutes",                        category:"meaning",    domain:"creativity" },
+  { name:"Journal for 20 minutes",                       category:"meaning",    domain:"growth" },
+  { name:"Practice Claude code for 30 min",              category:"meaning",    domain:"work" },
+  { name:"Read a chapter of a real book",                category:"meaning",    domain:"growth" },
+  { name:"Volunteer hour / help a friend with something", category:"meaning",   domain:"community" },
+  { name:"Practice knitting for 30 min",                 category:"meaning",    domain:"creativity" },
+  { name:"Neuroplasticity work for 1 hr",                category:"meaning",    domain:"growth" },
+  { name:"Give myself feedback in a kind/loving way",    category:"meaning",    domain:"growth" },
+  { name:"Read/learn something I'm curious about",       category:"meaning",    domain:"growth" },
+  { name:"Read the bible / podcasts / pray",             category:"meaning",    domain:"growth" },
+  // Part 1
+  { name:"Try my best at something for 10 min",          category:"meaning",    domain:"growth" },
+];
+
+const MOTIVATION_RULES = [
+  { name:"The 5-minute rule", body:"Commit to 5 minutes of the activity. You can stop after. (You usually won't.) Starting is 90% of the work." },
+  { name:"Lower the bar until you can step over it", body:"Can't go to the gym → can't do a workout video → can't do 10 pushups → can do 1 pushup. Do the 1 pushup. That counts." },
+  { name:"Body before brain", body:"When your head is fogged, don't try to think your way out. Move, shower, get sunlight, drink water. The brain follows the body, not the other way around." },
+  { name:"Done > perfect > planned", body:"A messy completed activity beats a perfect planned one every time. A 4-minute walk in pajamas counts. Saying you'll do a 60-minute workout tomorrow doesn't." },
+  { name:"Two-day rule", body:"Never skip the same anchor habit two days in a row. One miss is human; two becomes a pattern. After a miss, your only job is to do it again the next day." },
+  { name:"You don't have to want to", body:"You just have to do it. Wanting to is a bonus, not a prerequisite. Most days you'll feel \"meh\" and do it anyway. That IS the skill." },
+  { name:"Self-compassion > self-criticism", body:"Beating yourself up has never once produced lasting change. Talk to yourself like you'd talk to a friend in the same spot. Then do the next small thing." },
+];
+
+function defaultValues(){
+  const out = {};
+  for (const d of DOMAINS) out[d.key] = { label: d.label, summary: DEFAULT_VALUE_SUMMARIES[d.key] || "", _updatedAt: nowISO() };
+  return out;
+}
+function defaultIdentity(){
+  return { statements: DEFAULT_IDENTITY.slice(), _updatedAt: nowISO() };
+}
 
 /* ════════════════════════════════════════════════════════
    DATE UTILITIES
@@ -597,6 +919,10 @@ function loadDismissed(){ return loadJSON(K_DISMISSED, {}); }
 function saveDismissed(v){ saveJSON(K_DISMISSED, v); }
 function loadSyncConf() { return loadJSON(K_SYNC, null); }
 function saveSyncConf(v){ saveJSON(K_SYNC, v); }
+function loadValues()   { return loadJSON(K_VALUES, null); }
+function saveValues(v)  { saveJSON(K_VALUES, v); markDirty(); }
+function loadIdentity() { return loadJSON(K_IDENTITY, null); }
+function saveIdentity(v){ saveJSON(K_IDENTITY, v); markDirty(); }
 
 /* stamp _updatedAt on whatever we modify */
 function stamp(o){ if (o && typeof o === "object") o._updatedAt = nowISO(); return o; }
@@ -699,6 +1025,8 @@ function emptyEntry(){
     lessons: "",
     couldBeBetter: "",
     notes: "",
+    domains: [],
+    spirals: [],
   };
 }
 function getEntry(iso){
@@ -706,6 +1034,8 @@ function getEntry(iso){
   if (!e) return emptyEntry();
   const base = emptyEntry();
   for (const k of ["gratitude","intentions","priorities"]){ if (!Array.isArray(e[k])) e[k] = base[k]; while (e[k].length<3) e[k].push(""); }
+  if (!Array.isArray(e.domains)) e.domains = [];
+  if (!Array.isArray(e.spirals)) e.spirals = [];
   return { ...base, ...e };
 }
 function saveEntry(iso, e){
@@ -717,7 +1047,9 @@ function isEmptyEntry(e){
   if (!e) return true;
   const txt = [...e.gratitude,...e.intentions,...e.priorities, e.affirmation, e.exercise, e.wins, e.lessons, e.couldBeBetter, e.notes, e.moodNote].join("").trim();
   const hasSched = Object.values(e.schedule||{}).some(v => v && v.trim());
-  return !txt && !hasSched && e.mood == null;
+  const hasDomains = Array.isArray(e.domains) && e.domains.length > 0;
+  const hasSpirals = Array.isArray(e.spirals) && e.spirals.length > 0;
+  return !txt && !hasSched && e.mood == null && !hasDomains && !hasSpirals;
 }
 
 /* ════════════════════════════════════════════════════════
@@ -733,6 +1065,8 @@ const state = {
   habitLog: loadHabitLog(),
   entries: loadEntries(),
   reviews: loadReviews(),
+  values: loadValues() || defaultValues(),
+  identity: loadIdentity() || defaultIdentity(),
   editingChoreId: null,
   editingChoreWeekdays: [],
   editingHabitId: null,
@@ -757,6 +1091,7 @@ function render(){
   else if (state.view === "today")     main.appendChild(renderToday());
   else if (state.view === "calendar")  main.appendChild(renderCalendar());
   else if (state.view === "habits")    main.appendChild(renderHabits());
+  else if (state.view === "plan")      main.appendChild(renderPlan());
   else if (state.view === "reviews")   main.appendChild(renderReviews());
 }
 
@@ -857,6 +1192,7 @@ function renderDashboard(){
     active.forEach(h=>{
       const p = el("div","habit-pill");
       p.appendChild(el("span","",h.name));
+      appendHabitTags(p, h);
       const s = habitStreak(h.id);
       p.appendChild(el("span","streak"+(s===0?" zero":""),`🔥 ${s}`));
       strip.appendChild(p);
@@ -968,6 +1304,7 @@ function renderToday(){
       const box = el("div","check-box"); if (habitDone(h.id,iso)) box.textContent="✓";
       r.appendChild(box);
       r.appendChild(el("span","label",h.name));
+      appendHabitTags(r, h);
       r.appendChild(el("span","streak-badge",`🔥 ${habitStreak(h.id)}`));
       r.onclick = ()=>{ toggleHabit(h.id,iso); render(); };
       hList.appendChild(r);
@@ -990,6 +1327,68 @@ function renderToday(){
   exF.appendChild(ex); planner.appendChild(exF);
   row1.appendChild(planner);
   wrap.appendChild(row1);
+
+  /* Life domains touched + TRAP→TRAC */
+  const baCard = el("div","card"); baCard.style.marginTop="14px";
+  baCard.appendChild(h3("Life domains touched today"));
+  const domSubtitle = el("div","muted","Tap any domain your activity touched today.");
+  domSubtitle.style.cssText = "font-size:12px;margin-bottom:10px;line-height:1.5;";
+  baCard.appendChild(domSubtitle);
+
+  if (!Array.isArray(entry.domains)) entry.domains = [];
+  const domRow = el("div","domain-chips");
+  DOMAINS.forEach(dn=>{
+    const chip = el("button","domain-chip");
+    if (entry.domains.includes(dn.key)) chip.classList.add("active");
+    chip.appendChild(el("span","",dn.short));
+    chip.onclick = ()=>{
+      const i = entry.domains.indexOf(dn.key);
+      if (i>=0) entry.domains.splice(i,1); else entry.domains.push(dn.key);
+      persist(); render();
+    };
+    domRow.appendChild(chip);
+  });
+  baCard.appendChild(domRow);
+
+  const sHead = el("div"); sHead.style.cssText = "display:flex;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap;";
+  const sTitle = el("div"); sTitle.style.cssText="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);flex:1;min-width:120px;";
+  sTitle.textContent = "TRAP → TRAC";
+  sHead.appendChild(sTitle);
+  const rulesBtn = el("button","spiral-fab","📋 Rules");
+  rulesBtn.title = "Rules for when motivation is gone";
+  rulesBtn.style.background = "var(--accent-soft)";
+  rulesBtn.onclick = ()=>openRulesModal();
+  sHead.appendChild(rulesBtn);
+  const sBtn = el("button","spiral-fab","＋ Log avoidance");
+  sBtn.onclick = ()=>openSpiralModal(iso);
+  sHead.appendChild(sBtn);
+  baCard.appendChild(sHead);
+
+  if (!Array.isArray(entry.spirals)) entry.spirals = [];
+  if (entry.spirals.length){
+    const list = el("div","spiral-list");
+    entry.spirals.forEach((s, idx)=>{
+      const row = el("div","spiral-row");
+      row.appendChild(el("div","sp-time", s.time || ""));
+      const body = el("div","sp-body");
+      if (s.trigger)  body.appendChild(el("div","sp-trigger", "T: "+s.trigger));
+      if (s.response) body.appendChild(el("div","sp-response","R: "+s.response));
+      if (s.action)   body.appendChild(el("div","sp-action",  "→ "+s.action));
+      if (!s.trigger && !s.response && !s.action) body.appendChild(el("div","sp-trigger","(empty)"));
+      row.appendChild(body);
+      const del = el("button","sp-del","×");
+      del.title = "Remove";
+      del.onclick = ()=>{ entry.spirals.splice(idx,1); persist(); render(); };
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+    baCard.appendChild(list);
+  } else {
+    const em = el("div","muted","No avoidance patterns logged today.");
+    em.style.cssText = "font-size:12px;margin-top:8px;";
+    baCard.appendChild(em);
+  }
+  wrap.appendChild(baCard);
 
   const sched = el("div","card"); sched.style.marginTop="14px";
   sched.appendChild(h3("Schedule"));
@@ -1186,6 +1585,11 @@ function renderHabits(){
   const wrap = el("div");
   const head = el("div","page-head");
   head.appendChild(el("h2","","Habits"));
+  const sug = el("button","btn ghost","✨ Suggestions");
+  sug.style.cssText = "font-size:12px;margin-right:8px;";
+  sug.title = "Add habits from your BA plan";
+  sug.onclick = ()=>openSuggestionsModal();
+  head.appendChild(sug);
   const add = el("button","btn primary","+ New habit"); add.onclick = ()=>openHabitModal(null); head.appendChild(add);
   wrap.appendChild(head);
 
@@ -1201,6 +1605,7 @@ function renderHabits(){
   active.forEach(h=>{
     const p = el("div","habit-pill");
     p.appendChild(el("span","",h.name));
+    if (h.domain && DOMAIN_BY_KEY[h.domain]) p.appendChild(el("span","habit-domain-tag", DOMAIN_BY_KEY[h.domain].short));
     const s = habitStreak(h.id);
     p.appendChild(el("span","streak"+(s===0?" zero":""),`🔥 ${s}`));
     const e = el("button","btn ghost","Edit"); e.style.cssText="padding:0 8px;font-size:11px;min-height:24px;"; e.onclick=()=>openHabitModal(h.id);
@@ -1235,15 +1640,122 @@ function renderHabits(){
   return wrap;
 }
 
+/* ───────── Values ───────── */
+function renderPlan(){
+  const wrap = el("div");
+  const head = el("div","page-head");
+  head.appendChild(el("h2","","Plan"));
+  const rulesBtn = el("button","btn ghost","📋 Rules");
+  rulesBtn.style.cssText = "font-size:12px;margin-right:8px;";
+  rulesBtn.title = "Rules for when motivation is gone";
+  rulesBtn.onclick = ()=>openRulesModal();
+  head.appendChild(rulesBtn);
+  const reset = el("button","btn ghost","Restore defaults");
+  reset.style.cssText = "font-size:12px;";
+  reset.onclick = ()=>{
+    if (!confirm("Restore all domain summaries and identity statements to your BA plan wording?")) return;
+    state.values = defaultValues();
+    state.identity = defaultIdentity();
+    saveValues(state.values); saveIdentity(state.identity); render();
+  };
+  head.appendChild(reset);
+  wrap.appendChild(head);
+
+  /* Identity statements (Part 1) */
+  if (!state.identity || !Array.isArray(state.identity.statements)) state.identity = defaultIdentity();
+  const idCard = el("div","card");
+  idCard.style.marginBottom = "14px";
+  idCard.appendChild(h3("The person I want to become"));
+  const idP = el("div","muted");
+  idP.style.cssText = "font-size:13px;line-height:1.6;margin-bottom:10px;";
+  idP.textContent = "Identity statements in present tense, as if already true. Read these on hard days.";
+  idCard.appendChild(idP);
+  state.identity.statements.forEach((stmt, idx)=>{
+    const row = el("div");
+    row.style.cssText = "display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;";
+    const num = el("div","",`${idx+1}.`);
+    num.style.cssText = "font-weight:700;color:var(--accent-deep);min-width:18px;padding-top:8px;";
+    row.appendChild(num);
+    const ta = el("textarea");
+    ta.value = stmt;
+    ta.style.cssText = "flex:1;min-height:54px;";
+    ta.placeholder = "I am…";
+    ta.oninput = ()=>{
+      state.identity.statements[idx] = ta.value;
+      state.identity._updatedAt = nowISO();
+      saveIdentity(state.identity);
+    };
+    row.appendChild(ta);
+    const del = el("button","icon-btn","×");
+    del.title = "Remove statement";
+    del.onclick = ()=>{
+      state.identity.statements.splice(idx,1);
+      state.identity._updatedAt = nowISO();
+      saveIdentity(state.identity); render();
+    };
+    row.appendChild(del);
+    idCard.appendChild(row);
+  });
+  const addBtn = el("button","btn ghost","＋ Add statement");
+  addBtn.style.cssText = "font-size:12px;";
+  addBtn.onclick = ()=>{
+    state.identity.statements.push("");
+    state.identity._updatedAt = nowISO();
+    saveIdentity(state.identity); render();
+  };
+  idCard.appendChild(addBtn);
+  wrap.appendChild(idCard);
+
+  /* Life domains (Part 1 cont.) */
+  const intro = el("div","card");
+  intro.style.marginBottom = "14px";
+  intro.appendChild(h3("Life domains — what matters to me here"));
+  const p = el("div","muted");
+  p.style.cssText = "font-size:13px;line-height:1.6;";
+  p.textContent = "Edit any summary in your own words. Today's domain chips and the Review screen use these to show how your activity lines up with what matters.";
+  intro.appendChild(p);
+  wrap.appendChild(intro);
+
+  if (!state.values) state.values = defaultValues();
+  const grid = el("div","value-grid");
+  for (const d of DOMAINS){
+    let v = state.values[d.key];
+    if (!v){ v = { label: d.label, summary: "", _updatedAt: nowISO() }; state.values[d.key] = v; }
+    const card = el("div","value-card");
+    const head2 = el("div","vc-head");
+    head2.appendChild(el("div","vc-label", d.label));
+    card.appendChild(head2);
+
+    const ta = el("textarea");
+    ta.value = v.summary || "";
+    ta.placeholder = "What I want here…";
+    ta.oninput = ()=>{ v.summary = ta.value; v._updatedAt = nowISO(); state.values[d.key] = v; saveValues(state.values); };
+    card.appendChild(ta);
+    grid.appendChild(card);
+  }
+  wrap.appendChild(grid);
+  return wrap;
+}
+
 /* ───────── Reviews ───────── */
 function renderReviews(){
   const wrap = el("div");
   const h2 = el("h2","","Reviews"); h2.style.cssText="font-size:24px;font-weight:700;margin-bottom:14px;";
   wrap.appendChild(h2);
 
+  const BA_WEEKLY = [
+    { key:"didDo",     label:"What did I actually do this week?" },
+    { key:"lifted",    label:"Which activities lifted my mood the most?" },
+    { key:"hardest",   label:"Which days were hardest? What was happening?" },
+    { key:"avoided",   label:"What did I avoid?" },
+    { key:"change",    label:"What's ONE thing I'll change next week?" },
+    { key:"keep",      label:"What's ONE thing I'll keep doing?" },
+    { key:"kindness",  label:"Was I kind to myself this week?" },
+  ];
+
   const ws = startOfWeek(state.cursor); const we = addDays(ws,6);
   const wK = weekKey(ws);
-  const wData = state.reviews[wK] || { theme:"", wins:"", lessons:"", changes:"", goals:"" };
+  const wData = state.reviews[wK] || {};
 
   const wCard = el("div","card");
   const wHead = el("div"); wHead.style.cssText="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;";
@@ -1253,20 +1765,22 @@ function renderReviews(){
   const wNext = el("button","icon-btn","›"); wNext.onclick=()=>{ state.cursor=addDays(state.cursor,7); render(); };
   wHead.appendChild(wTitle); wHead.appendChild(wPrev); wHead.appendChild(wNext);
   wCard.appendChild(wHead);
+  const wIntro = el("div","muted"); wIntro.style.cssText="font-size:12px;margin-bottom:10px;";
+  wIntro.textContent = "Sunday, 10 minutes. Be honest, not hard on yourself. This is data collection.";
+  wCard.appendChild(wIntro);
   wCard.appendChild(buildReviewStats(ws, we));
-  const wGrid = el("div","grid-2");
-  wGrid.appendChild(textarea("Theme of the week", wData.theme, v=>{ wData.theme=v; stamp(wData); state.reviews[wK]=wData; saveReviews(state.reviews); }));
-  wGrid.appendChild(textarea("Biggest wins", wData.wins, v=>{ wData.wins=v; stamp(wData); state.reviews[wK]=wData; saveReviews(state.reviews); }));
-  wGrid.appendChild(textarea("Lessons learned", wData.lessons, v=>{ wData.lessons=v; stamp(wData); state.reviews[wK]=wData; saveReviews(state.reviews); }));
-  wGrid.appendChild(textarea("What to change next week", wData.changes, v=>{ wData.changes=v; stamp(wData); state.reviews[wK]=wData; saveReviews(state.reviews); }));
-  wCard.appendChild(wGrid);
-  wCard.appendChild(textarea("Goals for next week", wData.goals, v=>{ wData.goals=v; stamp(wData); state.reviews[wK]=wData; saveReviews(state.reviews); }));
+  wCard.appendChild(buildDomainActivation(ws, we));
+  BA_WEEKLY.forEach(q=>{
+    wCard.appendChild(textarea(q.label, wData[q.key] || "", v=>{
+      wData[q.key]=v; stamp(wData); state.reviews[wK]=wData; saveReviews(state.reviews);
+    }));
+  });
   wrap.appendChild(wCard);
 
   const mStart = new Date(state.cursor.getFullYear(), state.cursor.getMonth(), 1);
   const mEnd = new Date(state.cursor.getFullYear(), state.cursor.getMonth()+1, 0);
   const mK = monthKey(state.cursor);
-  const mData = state.reviews[mK] || { theme:"", wins:"", lessons:"", changes:"", goals:"" };
+  const mData = state.reviews[mK] || {};
 
   const mCard = el("div","card"); mCard.style.marginTop="14px";
   const mHead = el("div"); mHead.style.cssText="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;";
@@ -1277,13 +1791,13 @@ function renderReviews(){
   mHead.appendChild(mTitle); mHead.appendChild(mPrev); mHead.appendChild(mNext);
   mCard.appendChild(mHead);
   mCard.appendChild(buildReviewStats(mStart, mEnd));
-  const mGrid = el("div","grid-2");
-  mGrid.appendChild(textarea("Theme of the month", mData.theme, v=>{ mData.theme=v; stamp(mData); state.reviews[mK]=mData; saveReviews(state.reviews); }));
-  mGrid.appendChild(textarea("Biggest wins", mData.wins, v=>{ mData.wins=v; stamp(mData); state.reviews[mK]=mData; saveReviews(state.reviews); }));
-  mGrid.appendChild(textarea("Lessons learned", mData.lessons, v=>{ mData.lessons=v; stamp(mData); state.reviews[mK]=mData; saveReviews(state.reviews); }));
-  mGrid.appendChild(textarea("What to change next month", mData.changes, v=>{ mData.changes=v; stamp(mData); state.reviews[mK]=mData; saveReviews(state.reviews); }));
-  mCard.appendChild(mGrid);
-  mCard.appendChild(textarea("Goals for next month", mData.goals, v=>{ mData.goals=v; stamp(mData); state.reviews[mK]=mData; saveReviews(state.reviews); }));
+  mCard.appendChild(buildDomainActivation(mStart, mEnd));
+  BA_WEEKLY.forEach(q=>{
+    const monthLabel = q.label.replace("this week","this month").replace("next week","next month");
+    mCard.appendChild(textarea(monthLabel, mData[q.key] || "", v=>{
+      mData[q.key]=v; stamp(mData); state.reviews[mK]=mData; saveReviews(state.reviews);
+    }));
+  });
   wrap.appendChild(mCard);
   return wrap;
 }
@@ -1303,6 +1817,44 @@ function buildReviewStats(start, end){
   return stats;
 }
 function statCard(n, l){ const c=el("div","stat-card"); c.appendChild(el("div","stat-n",String(n))); c.appendChild(el("div","stat-l",l)); return c; }
+
+function buildDomainActivation(start, end){
+  const wrap = el("div");
+  const head = el("div");
+  head.style.cssText = "font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin:14px 0 4px;";
+  head.textContent = "Life domain activation";
+  wrap.appendChild(head);
+  const note = el("div","muted","Counts each day a domain was tagged on Today + each day you completed a habit tagged to it. Domains with zero touches this period are highlighted.");
+  note.style.cssText = "font-size:11px;margin-bottom:10px;line-height:1.5;";
+  wrap.appendChild(note);
+
+  const counts = {};
+  for (const d of DOMAINS) counts[d.key] = 0;
+  for (let d = new Date(start); d <= end; d = addDays(d,1)){
+    const iso = toISO(d);
+    const e = state.entries[iso];
+    if (e && Array.isArray(e.domains)) for (const k of e.domains) if (counts[k] !== undefined) counts[k]++;
+    for (const h of state.habits) {
+      if (!h.domain || h.archivedAt) continue;
+      if (counts[h.domain] === undefined) continue;
+      if (habitDone(h.id, iso)) counts[h.domain]++;
+    }
+  }
+
+  const rows = DOMAINS.map(d => ({ key: d.key, label: d.label, count: counts[d.key] }))
+    .sort((a,b)=> b.count - a.count);
+
+  const list = el("div","domain-activation");
+  rows.forEach(r=>{
+    const row = el("div","da-row");
+    if (r.count === 0) row.classList.add("neglected");
+    row.appendChild(el("div","da-name", r.label));
+    row.appendChild(el("div","da-count", `${r.count}× this period`));
+    list.appendChild(row);
+  });
+  wrap.appendChild(list);
+  return wrap;
+}
 
 /* ════════════════════════════════════════════════════════
    CHORE / HABIT MODALS
@@ -1386,19 +1938,153 @@ function toggleChoreComplete(id, iso, done){
   stamp(c); saveChores(state.chores); render();
 }
 
+/* TRAP→TRAC modal */
+let spiralForISO = null;
+function openSpiralModal(iso){
+  spiralForISO = iso;
+  $("sp-trigger").value = "";
+  $("sp-response").value = "";
+  $("sp-action").value = "";
+  $("modal-spiral-bg").classList.add("show");
+  setTimeout(()=>$("sp-trigger").focus(), 50);
+}
+function closeSpiralModal(){ $("modal-spiral-bg").classList.remove("show"); spiralForISO = null; }
+function saveSpiralFromModal(){
+  if (!spiralForISO) return;
+  const trigger = $("sp-trigger").value.trim();
+  const response = $("sp-response").value.trim();
+  const action = $("sp-action").value.trim();
+  if (!trigger && !response && !action){ closeSpiralModal(); return; }
+  const e = getEntry(spiralForISO);
+  if (!Array.isArray(e.spirals)) e.spirals = [];
+  const t = new Date();
+  const hr = t.getHours();
+  const time = `${hr%12===0?12:hr%12}:${String(t.getMinutes()).padStart(2,"0")}${hr<12?"a":"p"}`;
+  e.spirals.push({ time, trigger, response, action, _at: nowISO() });
+  saveEntry(spiralForISO, e);
+  closeSpiralModal();
+  render();
+}
+
+/* Habit suggestions (BA Plan Parts 1-4) */
+let suggestFilter = null; // null = all, else category key
+
+function isHabitAlreadyAdded(name){
+  const norm = s => s.toLowerCase().replace(/\s+/g," ").trim();
+  const target = norm(name);
+  return state.habits.some(h => !h.archivedAt && norm(h.name) === target);
+}
+
+function addSuggestedHabit(s){
+  if (isHabitAlreadyAdded(s.name)) return false;
+  state.habits.push(stamp({
+    id: crypto.randomUUID(),
+    name: s.name,
+    domain: s.domain || null,
+    category: s.category || null,
+    createdAt: nowISO(),
+    archivedAt: null,
+  }));
+  saveHabits(state.habits);
+  return true;
+}
+
+function openSuggestionsModal(){
+  suggestFilter = null;
+  renderSuggestionsList();
+  $("modal-suggest-bg").classList.add("show");
+}
+function closeSuggestionsModal(){ $("modal-suggest-bg").classList.remove("show"); }
+
+function renderSuggestionsList(){
+  // Filters
+  const filters = $("suggest-filters");
+  filters.innerHTML = "";
+  const allBtn = el("button","suggest-filter"+(suggestFilter==null?" active":""),"All");
+  allBtn.onclick = ()=>{ suggestFilter = null; renderSuggestionsList(); };
+  filters.appendChild(allBtn);
+  HABIT_CATEGORIES.forEach(c=>{
+    const b = el("button","suggest-filter"+(suggestFilter===c.key?" active":""), c.short_label);
+    b.onclick = ()=>{ suggestFilter = c.key; renderSuggestionsList(); };
+    filters.appendChild(b);
+  });
+
+  // List grouped by category
+  const list = $("suggest-list");
+  list.innerHTML = "";
+  HABIT_CATEGORIES.forEach(cat=>{
+    if (suggestFilter && suggestFilter !== cat.key) return;
+    const items = SUGGESTED_HABITS.filter(s => s.category === cat.key);
+    if (!items.length) return;
+    const head = el("div","suggest-section-head", cat.label);
+    list.appendChild(head);
+    items.forEach(s=>{
+      const row = el("div","suggest-row");
+      const added = isHabitAlreadyAdded(s.name);
+      if (added) row.classList.add("added");
+      const dot = el("div","sg-cat", cat.short);
+      dot.style.background = cat.color;
+      row.appendChild(dot);
+      const body = el("div");
+      body.appendChild(el("div","sg-name", s.name));
+      const dom = DOMAIN_BY_KEY[s.domain];
+      body.appendChild(el("div","sg-meta", dom ? dom.short : "—"));
+      row.appendChild(body);
+      const btn = el("button","sg-add", added ? "Added" : "Add");
+      if (!added){
+        btn.onclick = ()=>{
+          if (addSuggestedHabit(s)) renderSuggestionsList();
+        };
+      }
+      row.appendChild(btn);
+      list.appendChild(row);
+    });
+  });
+}
+
+function addAllSuggestedNotYetAdded(){
+  let toAdd = SUGGESTED_HABITS.filter(s => !isHabitAlreadyAdded(s.name));
+  if (suggestFilter) toAdd = toAdd.filter(s => s.category === suggestFilter);
+  if (!toAdd.length){ alert("Nothing new to add — all suggestions already in your habits."); return; }
+  if (!confirm(`Add ${toAdd.length} habit${toAdd.length===1?"":"s"} to your list?`)) return;
+  toAdd.forEach(s => addSuggestedHabit(s));
+  renderSuggestionsList();
+}
+
+/* Rules modal (Part 7) */
+function openRulesModal(){
+  const list = $("rules-list");
+  list.innerHTML = "";
+  MOTIVATION_RULES.forEach(r=>{
+    const row = el("div","rules-row");
+    row.appendChild(el("div","rules-name", r.name));
+    row.appendChild(el("div","rules-body", r.body));
+    list.appendChild(row);
+  });
+  $("modal-rules-bg").classList.add("show");
+}
+function closeRulesModal(){ $("modal-rules-bg").classList.remove("show"); }
+
 function openHabitModal(id){
   state.editingHabitId = id;
-  const n = $("hf-name"); const del = $("habit-modal-delete");
-  if (id){ const h = state.habits.find(x=>x.id===id); if (!h) return; $("habit-modal-title").textContent="Edit habit"; n.value=h.name; del.classList.remove("hide"); }
-  else { $("habit-modal-title").textContent="New habit"; n.value=""; del.classList.add("hide"); }
+  const n = $("hf-name"); const dom = $("hf-domain"); const cat = $("hf-category"); const del = $("habit-modal-delete");
+  if (id){
+    const h = state.habits.find(x=>x.id===id); if (!h) return;
+    $("habit-modal-title").textContent="Edit habit"; n.value=h.name; dom.value = h.domain || ""; cat.value = h.category || "";
+    del.classList.remove("hide");
+  } else {
+    $("habit-modal-title").textContent="New habit"; n.value=""; dom.value=""; cat.value=""; del.classList.add("hide");
+  }
   $("modal-habit-bg").classList.add("show"); n.focus();
 }
 function closeHabitModal(){ $("modal-habit-bg").classList.remove("show"); state.editingHabitId=null; }
 function saveHabitFromModal(){
   const n = $("hf-name").value.trim();
+  const dom = $("hf-domain").value || null;
+  const cat = $("hf-category").value || null;
   if (!n){ alert("Habit name is required."); return; }
-  if (state.editingHabitId){ const h = state.habits.find(x=>x.id===state.editingHabitId); h.name=n; stamp(h); }
-  else state.habits.push(stamp({ id: crypto.randomUUID(), name:n, createdAt: nowISO(), archivedAt: null }));
+  if (state.editingHabitId){ const h = state.habits.find(x=>x.id===state.editingHabitId); h.name=n; h.domain=dom; h.category=cat; stamp(h); }
+  else state.habits.push(stamp({ id: crypto.randomUUID(), name:n, domain:dom, category:cat, createdAt: nowISO(), archivedAt: null }));
   saveHabits(state.habits); closeHabitModal(); render();
 }
 function deleteHabitFromModal(){
@@ -1475,6 +2161,8 @@ function buildLocalSnapshot(){
     habitLog: state.habitLog,
     entries: state.entries,
     reviews: state.reviews,
+    values: state.values,
+    identity: state.identity,
   };
 }
 function applySnapshot(snap){
@@ -1483,11 +2171,15 @@ function applySnapshot(snap){
   state.habitLog = snap.habitLog || {};
   state.entries = snap.entries || {};
   state.reviews = snap.reviews || {};
+  state.values = snap.values || defaultValues();
+  state.identity = snap.identity || defaultIdentity();
   saveJSON(K_CHORES, state.chores);
   saveJSON(K_HABITS, state.habits);
   saveJSON(K_HABIT_LOG, state.habitLog);
   saveJSON(K_ENTRIES, state.entries);
   saveJSON(K_REVIEWS, state.reviews);
+  saveJSON(K_VALUES, state.values);
+  saveJSON(K_IDENTITY, state.identity);
 }
 
 /* Merge two snapshots. Returns { merged, conflicts } */
@@ -1500,6 +2192,8 @@ function mergeSnapshots(local, remote, lastSyncedAt){
     habitLog: mergeBlob(local.habitLog, remote.habitLog, lastSyncedAt, conflicts, "habitLog", ()=>"Habit completion log"),
     entries: mergeMap(local.entries, remote.entries, lastSyncedAt, conflicts, "entry", (k)=>`Journal entry · ${k}`),
     reviews: mergeMap(local.reviews, remote.reviews, lastSyncedAt, conflicts, "review", (k)=>`Review · ${k}`),
+    values: mergeMap(local.values, remote.values, lastSyncedAt, conflicts, "value", (k)=>`Value · ${(DOMAIN_BY_KEY[k]&&DOMAIN_BY_KEY[k].label)||k}`),
+    identity: mergeBlob(local.identity, remote.identity, lastSyncedAt, conflicts, "identity", ()=>"Identity statements"),
   };
   return { merged, conflicts };
 }
@@ -1658,8 +2352,12 @@ async function applyConflictResolutions(){
       if (pick) merged.entries[c.id] = pick; else delete merged.entries[c.id];
     } else if (c.type === "review"){
       if (pick) merged.reviews[c.id] = pick; else delete merged.reviews[c.id];
+    } else if (c.type === "value"){
+      if (pick) merged.values[c.id] = pick; else delete merged.values[c.id];
     } else if (c.type === "habitLog"){
       merged.habitLog = pick || {};
+    } else if (c.type === "identity"){
+      merged.identity = pick || defaultIdentity();
     }
   }
   // Now merge non-conflicted remote items into merged (pull pattern)
@@ -1730,6 +2428,18 @@ function exportJSON(){
    DOM HELPERS & WIRING
    ════════════════════════════════════════════════════════ */
 function el(tag, cls, text){ const n=document.createElement(tag); if (cls) n.className=cls; if (text!=null) n.textContent=text; return n; }
+function appendHabitTags(parent, h){
+  if (h.category && HABIT_CAT_BY_KEY[h.category]){
+    const c = HABIT_CAT_BY_KEY[h.category];
+    const dot = el("span","habit-cat-tag", c.short);
+    dot.style.background = c.color;
+    dot.title = c.short_label;
+    parent.appendChild(dot);
+  }
+  if (h.domain && DOMAIN_BY_KEY[h.domain]){
+    parent.appendChild(el("span","habit-domain-tag", DOMAIN_BY_KEY[h.domain].short));
+  }
+}
 function h3(text){ return el("h3","",text); }
 function labelEl(text){ const l=el("label"); l.textContent=text; l.style.cssText="display:block;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px;"; return l; }
 function $(id){ return document.getElementById(id); }
@@ -1763,6 +2473,20 @@ $("habit-modal-save").onclick = saveHabitFromModal;
 $("habit-modal-delete").onclick = deleteHabitFromModal;
 $("modal-habit-bg").addEventListener("click", e=>{ if (e.target.id==="modal-habit-bg") closeHabitModal(); });
 
+$("spiral-modal-close").onclick = closeSpiralModal;
+$("spiral-modal-cancel").onclick = closeSpiralModal;
+$("spiral-modal-save").onclick = saveSpiralFromModal;
+$("modal-spiral-bg").addEventListener("click", e=>{ if (e.target.id==="modal-spiral-bg") closeSpiralModal(); });
+
+$("rules-modal-close").onclick = closeRulesModal;
+$("rules-modal-ok").onclick = closeRulesModal;
+$("modal-rules-bg").addEventListener("click", e=>{ if (e.target.id==="modal-rules-bg") closeRulesModal(); });
+
+$("suggest-modal-close").onclick = closeSuggestionsModal;
+$("suggest-modal-done").onclick = ()=>{ closeSuggestionsModal(); render(); };
+$("suggest-add-all").onclick = addAllSuggestedNotYetAdded;
+$("modal-suggest-bg").addEventListener("click", e=>{ if (e.target.id==="modal-suggest-bg") closeSuggestionsModal(); });
+
 $("sync-btn").onclick = ()=>{
   if (!state.sync) openSyncModal();
   else syncNow(true);
@@ -1787,6 +2511,9 @@ document.addEventListener("keydown", e=>{
   if (e.key==="Escape"){
     if ($("modal-chore-bg").classList.contains("show")) closeChoreModal();
     else if ($("modal-habit-bg").classList.contains("show")) closeHabitModal();
+    else if ($("modal-spiral-bg").classList.contains("show")) closeSpiralModal();
+    else if ($("modal-rules-bg").classList.contains("show")) closeRulesModal();
+    else if ($("modal-suggest-bg").classList.contains("show")) closeSuggestionsModal();
     else if ($("modal-sync-bg").classList.contains("show")) closeSyncModal();
   }
 });
@@ -1804,6 +2531,46 @@ if ("serviceWorker" in navigator){
 }
 
 /* Boot */
+function migrateOldDomains(){
+  let dirty = false;
+  // Habit domains
+  for (const h of state.habits){
+    if (h.domain && OLD_DOMAIN_MAP[h.domain]){
+      h.domain = OLD_DOMAIN_MAP[h.domain]; stamp(h); dirty = true;
+    }
+  }
+  if (dirty) saveHabits(state.habits);
+  // Entry-tagged domains
+  let entriesDirty = false;
+  for (const iso in state.entries){
+    const e = state.entries[iso];
+    if (!e || !Array.isArray(e.domains)) continue;
+    const next = []; let changed = false;
+    for (const k of e.domains){
+      if (DOMAIN_BY_KEY[k]){ next.push(k); }
+      else if (OLD_DOMAIN_MAP[k]){
+        const nk = OLD_DOMAIN_MAP[k];
+        if (!next.includes(nk)) next.push(nk);
+        changed = true;
+      } else { changed = true; } // drop unknown
+    }
+    if (changed){ e.domains = next; stamp(e); entriesDirty = true; }
+  }
+  if (entriesDirty) saveEntries(state.entries);
+  // Old-format values (had `rating` field, or used old keys) → reset
+  if (state.values){
+    const keys = Object.keys(state.values);
+    const hasOld = keys.some(k => OLD_DOMAIN_MAP[k] && !DOMAIN_BY_KEY[k]);
+    const missingNew = !DOMAINS.every(d => state.values[d.key]);
+    if (hasOld || missingNew){
+      state.values = defaultValues();
+      saveValues(state.values);
+    }
+  }
+}
+migrateOldDomains();
+if (!loadValues())   saveJSON(K_VALUES,   state.values);   // first-run seed
+if (!loadIdentity()) saveJSON(K_IDENTITY, state.identity); // first-run seed
 setSyncStatus(state.sync ? "idle" : "idle");
 render();
 if (state.sync) syncNow(true);
