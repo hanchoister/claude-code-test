@@ -337,6 +337,9 @@
   .intero-row .intero-name { font-size: 14px; color: var(--ink); }
   .intero-row.done .intero-name { color: var(--ink-faint); text-decoration: line-through; }
   .intero-row .intero-detail { font-size: 11px; color: var(--ink-faint); margin-top: 2px; line-height: 1.4; }
+  .intero-prompt { margin-bottom: 8px; }
+  .intero-prompt-label { display: block; font-size: 11px; color: var(--ink-soft); margin-bottom: 2px; font-weight: 500; letter-spacing: 0.3px; }
+  .intero-sub-label { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--ink-faint); margin: 12px 0 4px; }
 
   .mood-picker { display: flex; gap: 6px; align-items: center; }
   .mood-btn { flex: 1; padding: 10px 4px; border: 1px solid var(--rule); background: var(--paper); border-radius: 8px; cursor: pointer; font-size: 22px; text-align: center; }
@@ -1038,8 +1041,21 @@ function emptyEntry(){
     domains: [],
     spirals: [],
     intero: {},
+    interoNotes: {},
   };
 }
+const INTERO_PROMPTS = {
+  morning: [
+    { key: "emotion", label: "An emotion I notice in my body", placeholder: "anxious in my chest…" },
+    { key: "body",    label: "Something I notice in my body",  placeholder: "tight jaw, warm hands…" },
+    { key: "need",    label: "One thing I need today",         placeholder: "rest, water, to be heard…" },
+  ],
+  evening: [
+    { key: "emotion", label: "An emotion I'm feeling right now", placeholder: "tender, relieved, edgy…" },
+    { key: "body",    label: "Where I feel it in my body",       placeholder: "throat, belly, shoulders…" },
+    { key: "need",    label: "What my body needed today",        placeholder: "sleep, slowness, food…" },
+  ],
+};
 const INTERO_EXERCISES = {
   morning: [
     { key: "sigh",  name: "Physiological sigh",  detail: "2 quick nasal inhales → long mouth exhale, repeat 3×. Fastest way to drop arousal." },
@@ -1073,7 +1089,8 @@ function isEmptyEntry(e){
   const hasDomains = Array.isArray(e.domains) && e.domains.length > 0;
   const hasSpirals = Array.isArray(e.spirals) && e.spirals.length > 0;
   const hasIntero = e.intero && Object.values(e.intero).some(v => v);
-  return !txt && !hasSched && e.mood == null && !hasDomains && !hasSpirals && !hasIntero;
+  const hasInteroNotes = e.interoNotes && Object.values(e.interoNotes).some(v => v && String(v).trim());
+  return !txt && !hasSched && e.mood == null && !hasDomains && !hasSpirals && !hasIntero && !hasInteroNotes;
 }
 
 /* ════════════════════════════════════════════════════════
@@ -1477,10 +1494,29 @@ function renderToday(){
 
 function interoBlock(entry, section, persist){
   if (!entry.intero || typeof entry.intero !== "object") entry.intero = {};
+  if (!entry.interoNotes || typeof entry.interoNotes !== "object") entry.interoNotes = {};
   const wrap = el("div","intero-block");
   const lbl = el("div","intero-label");
   lbl.textContent = section === "morning" ? "Body check-in (start the day)" : "Body check-in (wind down)";
   wrap.appendChild(lbl);
+
+  // Reflective prompts
+  INTERO_PROMPTS[section].forEach(p=>{
+    const id = `${section}_${p.key}`;
+    const f = el("div","field intero-prompt");
+    const lab = el("label","intero-prompt-label", p.label);
+    f.appendChild(lab);
+    const inp = el("input"); inp.type="text"; inp.className="auto-input";
+    inp.value = entry.interoNotes[id] || "";
+    inp.placeholder = p.placeholder;
+    inp.oninput = ()=>{ entry.interoNotes[id] = inp.value; persist(); };
+    f.appendChild(inp);
+    wrap.appendChild(f);
+  });
+
+  // Practice exercises
+  const exHead = el("div","intero-sub-label","Quick practices");
+  wrap.appendChild(exHead);
   INTERO_EXERCISES[section].forEach(ex=>{
     const id = `${section}_${ex.key}`;
     const done = !!entry.intero[id];
