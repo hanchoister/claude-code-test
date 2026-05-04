@@ -1,5 +1,5 @@
-/* Daily Journal · service worker · cache-first with network fallback */
-const VERSION = "v3";
+/* Daily Journal · service worker · network-first for HTML, cache-first for assets */
+const VERSION = "v4";
 const CACHE = `journal-${VERSION}`;
 const ASSETS = [
   "./",
@@ -28,6 +28,28 @@ self.addEventListener("fetch", (e) => {
   /* Only handle same-origin GETs */
   if (e.request.method !== "GET" || url.origin !== self.location.origin) return;
 
+  const isHTML = e.request.mode === "navigate"
+    || (e.request.destination === "document")
+    || url.pathname.endsWith(".html")
+    || url.pathname === "/" || url.pathname.endsWith("/");
+
+  if (isHTML) {
+    /* Network-first for HTML so code updates propagate on the next reload. */
+    e.respondWith(
+      fetch(e.request)
+        .then((resp) => {
+          if (resp && resp.ok) {
+            const copy = resp.clone();
+            caches.open(CACHE).then((c) => c.put(e.request, copy));
+          }
+          return resp;
+        })
+        .catch(() => caches.match(e.request).then((c) => c || caches.match("./index.html")))
+    );
+    return;
+  }
+
+  /* Cache-first for static assets. */
   e.respondWith(
     caches.match(e.request).then((cached) => {
       const net = fetch(e.request)
