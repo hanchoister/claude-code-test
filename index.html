@@ -1391,7 +1391,12 @@ function renderToday(){
   wrap.appendChild(baCard);
 
   const sched = el("div","card"); sched.style.marginTop="14px";
-  sched.appendChild(h3("Schedule"));
+  const schedHead = h3("Schedule");
+  const addHabitBtn = el("button","btn ghost","+ Add habit");
+  addHabitBtn.style.cssText = "margin-left:auto;font-size:12px;";
+  addHabitBtn.onclick = ()=>openHabitModal(null);
+  schedHead.appendChild(addHabitBtn);
+  sched.appendChild(schedHead);
   const sg = el("div","schedule-grid");
   for (let h=6; h<=22; h++){
     sg.appendChild(el("div","hr",`${h%12===0?12:h%12}${h<12?" AM":" PM"}`));
@@ -2183,21 +2188,32 @@ function applySnapshot(snap){
 }
 
 /* Merge two snapshots. Returns { merged, conflicts } */
-function mergeSnapshots(local, remote, lastSyncedAt){
+function mergeSnapshots(local, remote, lastSyncedAt, knownIds){
   const conflicts = [];
+  const k = knownIds || {};
   const merged = {
     version: 1,
-    chores: mergeArray(local.chores, remote.chores, "id", lastSyncedAt, conflicts, "chore", x=>x.title),
-    habits: mergeArray(local.habits, remote.habits, "id", lastSyncedAt, conflicts, "habit", x=>x.name),
+    chores: mergeArray(local.chores, remote.chores, "id", lastSyncedAt, conflicts, "chore", x=>x.title, idSet(k.chores)),
+    habits: mergeArray(local.habits, remote.habits, "id", lastSyncedAt, conflicts, "habit", x=>x.name, idSet(k.habits)),
     habitLog: mergeBlob(local.habitLog, remote.habitLog, lastSyncedAt, conflicts, "habitLog", ()=>"Habit completion log"),
-    entries: mergeMap(local.entries, remote.entries, lastSyncedAt, conflicts, "entry", (k)=>`Journal entry · ${k}`),
-    reviews: mergeMap(local.reviews, remote.reviews, lastSyncedAt, conflicts, "review", (k)=>`Review · ${k}`),
-    values: mergeMap(local.values, remote.values, lastSyncedAt, conflicts, "value", (k)=>`Value · ${(DOMAIN_BY_KEY[k]&&DOMAIN_BY_KEY[k].label)||k}`),
+    entries: mergeMap(local.entries, remote.entries, lastSyncedAt, conflicts, "entry", (k)=>`Journal entry · ${k}`, idSet(k.entries)),
+    reviews: mergeMap(local.reviews, remote.reviews, lastSyncedAt, conflicts, "review", (k)=>`Review · ${k}`, idSet(k.reviews)),
+    values: mergeMap(local.values, remote.values, lastSyncedAt, conflicts, "value", (k)=>`Value · ${(DOMAIN_BY_KEY[k]&&DOMAIN_BY_KEY[k].label)||k}`, idSet(k.values)),
     identity: mergeBlob(local.identity, remote.identity, lastSyncedAt, conflicts, "identity", ()=>"Identity statements"),
   };
   return { merged, conflicts };
 }
-function mergeArray(localArr, remoteArr, keyName, lastSyncedAt, conflicts, type, descFn){
+function idSet(arr){ return new Set(Array.isArray(arr) ? arr : []); }
+function snapshotKnownIds(snap){
+  return {
+    chores:  (snap.chores  || []).map(x => x.id),
+    habits:  (snap.habits  || []).map(x => x.id),
+    entries: Object.keys(snap.entries || {}),
+    reviews: Object.keys(snap.reviews || {}),
+    values:  Object.keys(snap.values  || {}),
+  };
+}
+function mergeArray(localArr, remoteArr, keyName, lastSyncedAt, conflicts, type, descFn, known){
   localArr = localArr || []; remoteArr = remoteArr || [];
   const byKey = new Map();
   for (const it of localArr) byKey.set(it[keyName], { local: it });
@@ -2207,7 +2223,7 @@ function mergeArray(localArr, remoteArr, keyName, lastSyncedAt, conflicts, type,
   }
   const out = [];
   for (const [k, v] of byKey){
-    const resolved = pickItem(v.local, v.remote, lastSyncedAt);
+    const resolved = pickItem(v.local, v.remote, k, known, lastSyncedAt);
     if (resolved.conflict){
       conflicts.push({ type, id: k, local: v.local, remote: v.remote, description: descFn(v.local || v.remote), resolution: null });
       out.push(v.local); // placeholder, will be replaced after user resolves
@@ -2217,13 +2233,13 @@ function mergeArray(localArr, remoteArr, keyName, lastSyncedAt, conflicts, type,
   }
   return out;
 }
-function mergeMap(localObj, remoteObj, lastSyncedAt, conflicts, type, descFn){
+function mergeMap(localObj, remoteObj, lastSyncedAt, conflicts, type, descFn, known){
   localObj = localObj || {}; remoteObj = remoteObj || {};
   const keys = new Set([...Object.keys(localObj), ...Object.keys(remoteObj)]);
   const out = {};
   for (const k of keys){
     const l = localObj[k], r = remoteObj[k];
-    const resolved = pickItem(l, r, lastSyncedAt);
+    const resolved = pickItem(l, r, k, known, lastSyncedAt);
     if (resolved.conflict){
       conflicts.push({ type, id: k, local: l, remote: r, description: descFn(k), resolution: null });
       out[k] = l;
@@ -2245,25 +2261,27 @@ function mergeBlob(local, remote, lastSyncedAt, conflicts, type, descFn){
   }
   return ru > lu ? remote : local;
 }
-function pickItem(local, remote, lastSyncedAt){
+/*
+  pickItem uses a set of "known" ids — the items that were present in the
+  last successful merge — to decide whether a missing-on-one-side item is a
+  delete or a not-yet-seen create. This is robust to clock skew between
+  devices, unlike timestamp-only tombstones.
+*/
+function pickItem(local, remote, id, known, lastSyncedAt){
   if (!local && !remote) return { value: null };
-  const ls = lastSyncedAt || "";
+  const wasKnown = known && known.has && known.has(id);
   if (!local){
-    // Remote exists, local doesn't. If we'd already synced this item before
-    // (its remote _updatedAt is at or before our lastSyncedAt), local deleted it.
-    const ru = remote._updatedAt;
-    if (ls && ru && ru <= ls) return { value: null }; // tombstone — keep deleted
-    return { value: remote };
+    if (wasKnown) return { value: null }; // local deleted it
+    return { value: remote };              // new from remote
   }
   if (!remote){
-    // Same logic in reverse: local exists, remote doesn't.
-    const lu = local._updatedAt;
-    if (ls && lu && lu <= ls) return { value: null }; // remote deleted it
-    return { value: local };
+    if (wasKnown) return { value: null }; // remote deleted it
+    return { value: local };               // new from local
   }
   const lu = local._updatedAt || "";
   const ru = remote._updatedAt || "";
   if (lu === ru) return { value: local };
+  const ls = lastSyncedAt || "";
   if (lu > ls && ru > ls && lu !== ru) return { conflict: true };
   return { value: ru > lu ? remote : local };
 }
@@ -2287,7 +2305,7 @@ async function syncNow(force){
     let merged, conflicts = [];
     if (!remote) { merged = local; }
     else {
-      const res = mergeSnapshots(local, remote, state.sync.lastSyncedAt);
+      const res = mergeSnapshots(local, remote, state.sync.lastSyncedAt, state.sync.knownIds);
       merged = res.merged; conflicts = res.conflicts;
     }
 
@@ -2309,6 +2327,7 @@ async function syncNow(force){
     applySnapshot(merged);
     state.sync.gistId = gistId;
     state.sync.lastSyncedAt = nowISO();
+    state.sync.knownIds = snapshotKnownIds(merged);
     saveSyncConf(state.sync);
     setSyncStatus("synced");
     render();
@@ -2372,7 +2391,7 @@ async function applyConflictResolutions(){
     }
   }
   // Now merge non-conflicted remote items into merged (pull pattern)
-  const merge2 = mergeSnapshots(merged, remote, state.sync.lastSyncedAt);
+  const merge2 = mergeSnapshots(merged, remote, state.sync.lastSyncedAt, state.sync.knownIds);
   const final = merge2.merged;
 
   try {
@@ -2380,6 +2399,7 @@ async function applyConflictResolutions(){
     await writeGist(state.sync.gistId, final);
     applySnapshot(final);
     state.sync.lastSyncedAt = nowISO();
+    state.sync.knownIds = snapshotKnownIds(final);
     saveSyncConf(state.sync);
     state.conflictQueue = null; state.pendingRemote = null;
     closeConflictModal();
@@ -2403,7 +2423,7 @@ async function saveSyncSettings(){
   const pat = $("sf-pat").value.trim();
   const gistId = $("sf-gist").value.trim();
   if (!pat){ alert("Token is required."); return; }
-  state.sync = { pat, gistId: gistId || null, lastSyncedAt: null };
+  state.sync = { pat, gistId: gistId || null, lastSyncedAt: null, knownIds: null };
   saveSyncConf(state.sync);
   localStorage.setItem(K_SYNC_NUDGED, "1");
   closeSyncModal();
