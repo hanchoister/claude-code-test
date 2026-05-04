@@ -2247,12 +2247,23 @@ function mergeBlob(local, remote, lastSyncedAt, conflicts, type, descFn){
 }
 function pickItem(local, remote, lastSyncedAt){
   if (!local && !remote) return { value: null };
-  if (!local) return { value: remote };
-  if (!remote) return { value: local };
+  const ls = lastSyncedAt || "";
+  if (!local){
+    // Remote exists, local doesn't. If we'd already synced this item before
+    // (its remote _updatedAt is at or before our lastSyncedAt), local deleted it.
+    const ru = remote._updatedAt;
+    if (ls && ru && ru <= ls) return { value: null }; // tombstone — keep deleted
+    return { value: remote };
+  }
+  if (!remote){
+    // Same logic in reverse: local exists, remote doesn't.
+    const lu = local._updatedAt;
+    if (ls && lu && lu <= ls) return { value: null }; // remote deleted it
+    return { value: local };
+  }
   const lu = local._updatedAt || "";
   const ru = remote._updatedAt || "";
   if (lu === ru) return { value: local };
-  const ls = lastSyncedAt || "";
   if (lu > ls && ru > ls && lu !== ru) return { conflict: true };
   return { value: ru > lu ? remote : local };
 }
