@@ -898,6 +898,12 @@ const SUGGESTED_HABITS = [
   { name:"Wake up at the same time every day",           category:"body",       domain:"health" },
   { name:"15-min walk outside or treadmill",             category:"body",       domain:"health" },
   { name:"Workout (3 exercises × 4 sets × 8–10 reps)",   category:"body",       domain:"health" },
+  // Interoception practices
+  { name:"Physiological sigh (2 nasal in, long mouth out × 3)", category:"body", domain:"health" },
+  { name:"Body scan, head to toe (2 min)",                category:"body",       domain:"health" },
+  { name:"Hand on heart, feel heartbeat (60 sec)",        category:"body",       domain:"health" },
+  { name:"4-in / 8-out breath (~1 min)",                  category:"body",       domain:"health" },
+  { name:"5-4-3-2-1 grounding",                           category:"body",       domain:"health" },
 
   // Part 2.E — Meaning
   { name:"Sketch for 10 minutes",                        category:"meaning",    domain:"creativity" },
@@ -1167,18 +1173,6 @@ const INTERO_PROMPTS = {
     { key: "emotion", label: "Emotion I'm feeling",             placeholder: "tender, relieved, edgy…" },
     { key: "body",    label: "Something I notice in my body",   placeholder: "tight chest, heavy legs…" },
     { key: "need",    label: "One thing I need tomorrow",       placeholder: "8 hrs of sleep, walk before work, no back-to-back meetings…" },
-  ],
-};
-const INTERO_EXERCISES = {
-  morning: [
-    { key: "sigh",  name: "Physiological sigh",  detail: "2 quick nasal inhales → long mouth exhale, repeat 3×. Fastest way to drop arousal." },
-    { key: "scan",  name: "Body scan",           detail: "Head → toe, 2 min. Just notice sensations; no fixing." },
-    { key: "heart", name: "Hand on heart",       detail: "Hand on chest, feel your heartbeat for 60 seconds." },
-  ],
-  evening: [
-    { key: "scan",   name: "Body scan",          detail: "Head → toe, release any tension you find." },
-    { key: "breath", name: "4-in / 8-out breath",detail: "Inhale 4 sec, exhale 8 sec, ~1 min. Activates parasympathetic." },
-    { key: "ground", name: "5-4-3-2-1 grounding",detail: "Name 5 see · 4 hear · 3 touch · 2 smell · 1 taste." },
   ],
 };
 function getEntry(iso){
@@ -1584,14 +1578,12 @@ function renderToday(){
 }
 
 function interoBlock(entry, section, persist){
-  if (!entry.intero || typeof entry.intero !== "object") entry.intero = {};
   if (!entry.interoNotes || typeof entry.interoNotes !== "object") entry.interoNotes = {};
   const wrap = el("div","intero-block");
   const lbl = el("div","intero-label");
   lbl.textContent = section === "morning" ? "Body check-in (start the day)" : "Body check-in (wind down)";
   wrap.appendChild(lbl);
 
-  // Reflective prompts
   INTERO_PROMPTS[section].forEach(p=>{
     const id = `${section}_${p.key}`;
     const f = el("div","field intero-prompt");
@@ -1603,26 +1595,6 @@ function interoBlock(entry, section, persist){
     inp.oninput = ()=>{ entry.interoNotes[id] = inp.value; persist(); };
     f.appendChild(inp);
     wrap.appendChild(f);
-  });
-
-  // Practice exercises
-  const exHead = el("div","intero-sub-label","Quick practices");
-  wrap.appendChild(exHead);
-  INTERO_EXERCISES[section].forEach(ex=>{
-    const id = `${section}_${ex.key}`;
-    const done = !!entry.intero[id];
-    const row = el("div","intero-row" + (done ? " done" : ""));
-    const box = el("div","intero-check"); if (done) box.textContent = "✓";
-    row.appendChild(box);
-    const body = el("div","intero-body");
-    body.appendChild(el("div","intero-name", ex.name));
-    body.appendChild(el("div","intero-detail", ex.detail));
-    row.appendChild(body);
-    row.onclick = ()=>{
-      entry.intero[id] = !entry.intero[id];
-      persist(); render();
-    };
-    wrap.appendChild(row);
   });
   return wrap;
 }
