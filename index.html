@@ -1388,6 +1388,11 @@ function renderToday(){
   addHabitBtn.style.cssText = "margin-left:auto;font-size:12px;";
   addHabitBtn.onclick = ()=>openHabitModal(null);
   schedHead.appendChild(addHabitBtn);
+  const sugBtn = el("button","btn ghost","✨ Suggestions");
+  sugBtn.style.cssText = "font-size:12px;";
+  sugBtn.title = "Add habits from your BA plan";
+  sugBtn.onclick = ()=>openSuggestionsModal();
+  schedHead.appendChild(sugBtn);
   sched.appendChild(schedHead);
   const sg = el("div","schedule-grid");
   for (let h=6; h<=22; h++){
