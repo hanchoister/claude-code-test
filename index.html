@@ -1291,26 +1291,38 @@ function renderToday(){
   planner.appendChild(h3("Plan"));
   planner.appendChild(numList("Top 3 priorities", entry.priorities, v=>{ entry.priorities=v; persist(); }));
 
-  const hl = el("div"); hl.style.cssText="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 6px;"; hl.textContent="Habits"; planner.appendChild(hl);
-  const hList = el("div","habit-check-list");
-  const activeHabits = state.habits.filter(h=>!h.archivedAt);
-  if (!activeHabits.length){
-    const ep = el("div","habit-empty","No habits defined. ");
-    const add = el("button","btn ghost","Add one →"); add.style.cssText="padding:2px 8px;font-size:12px;"; add.onclick=()=>openHabitModal(null);
-    ep.appendChild(add); hList.appendChild(ep);
+  const chRow = el("div");
+  chRow.style.cssText = "display:flex;align-items:center;gap:8px;margin:12px 0 6px;";
+  const chLbl = el("div"); chLbl.style.cssText="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);flex:1;";
+  const occ = occurrencesOnDate(iso);
+  chLbl.textContent = `Chores (${occ.length})`;
+  chRow.appendChild(chLbl);
+  const addCh = el("button","btn ghost","+ Add"); addCh.style.cssText="padding:2px 8px;font-size:12px;";
+  addCh.onclick=()=>openChoreModal(null, iso);
+  chRow.appendChild(addCh);
+  planner.appendChild(chRow);
+
+  if (!occ.length){
+    const ep = el("div","muted","No chores for this day.");
+    ep.style.cssText = "font-size:12px;";
+    planner.appendChild(ep);
   } else {
-    activeHabits.forEach(h=>{
-      const r = el("div","habit-check-row"); if (habitDone(h.id,iso)) r.classList.add("done");
-      const box = el("div","check-box"); if (habitDone(h.id,iso)) box.textContent="✓";
-      r.appendChild(box);
-      r.appendChild(el("span","label",h.name));
-      appendHabitTags(r, h);
-      r.appendChild(el("span","streak-badge",`🔥 ${habitStreak(h.id)}`));
-      r.onclick = ()=>{ toggleHabit(h.id,iso); render(); };
-      hList.appendChild(r);
+    const chList = el("div","today-chores");
+    occ.forEach(o=>{
+      const r = el("div","today-chore-row");
+      const done = !!(o.chore.completed && o.chore.completed[iso]);
+      if (done) r.classList.add("done");
+      const cb = el("input"); cb.type="checkbox"; cb.checked=done;
+      cb.onchange = ()=>toggleChoreComplete(o.chore.id, iso, cb.checked);
+      r.appendChild(cb);
+      r.appendChild(el("span","tt", o.chore.time ? fmtTime(o.chore.time) : "All day"));
+      const tt = el("span","ti", o.chore.title); tt.style.cursor="pointer"; tt.onclick=()=>openChoreModal(o.chore.id);
+      r.appendChild(tt);
+      if (o.chore.recurrence && o.chore.recurrence.type!=="none") r.appendChild(el("span","ag-recur", recurrenceSummary(o.chore.recurrence)));
+      chList.appendChild(r);
     });
+    planner.appendChild(chList);
   }
-  planner.appendChild(hList);
 
   const ml = el("div"); ml.style.cssText="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin:14px 0 6px;"; ml.textContent="Mood"; planner.appendChild(ml);
   const moodRow = el("div","mood-picker");
@@ -1328,29 +1340,9 @@ function renderToday(){
   row1.appendChild(planner);
   wrap.appendChild(row1);
 
-  /* Life domains touched + TRAP→TRAC */
-  const baCard = el("div","card"); baCard.style.marginTop="14px";
-  baCard.appendChild(h3("Life domains touched today"));
-  const domSubtitle = el("div","muted","Tap any domain your activity touched today.");
-  domSubtitle.style.cssText = "font-size:12px;margin-bottom:10px;line-height:1.5;";
-  baCard.appendChild(domSubtitle);
-
-  if (!Array.isArray(entry.domains)) entry.domains = [];
-  const domRow = el("div","domain-chips");
-  DOMAINS.forEach(dn=>{
-    const chip = el("button","domain-chip");
-    if (entry.domains.includes(dn.key)) chip.classList.add("active");
-    chip.appendChild(el("span","",dn.short));
-    chip.onclick = ()=>{
-      const i = entry.domains.indexOf(dn.key);
-      if (i>=0) entry.domains.splice(i,1); else entry.domains.push(dn.key);
-      persist(); render();
-    };
-    domRow.appendChild(chip);
-  });
-  baCard.appendChild(domRow);
-
-  const sHead = el("div"); sHead.style.cssText = "display:flex;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap;";
+  /* TRAP→TRAC */
+  const trapCard = el("div","card"); trapCard.style.marginTop="14px";
+  const sHead = el("div"); sHead.style.cssText = "display:flex;align-items:center;gap:10px;flex-wrap:wrap;";
   const sTitle = el("div"); sTitle.style.cssText="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);flex:1;min-width:120px;";
   sTitle.textContent = "TRAP → TRAC";
   sHead.appendChild(sTitle);
@@ -1362,7 +1354,7 @@ function renderToday(){
   const sBtn = el("button","spiral-fab","＋ Log avoidance");
   sBtn.onclick = ()=>openSpiralModal(iso);
   sHead.appendChild(sBtn);
-  baCard.appendChild(sHead);
+  trapCard.appendChild(sHead);
 
   if (!Array.isArray(entry.spirals)) entry.spirals = [];
   if (entry.spirals.length){
@@ -1382,13 +1374,13 @@ function renderToday(){
       row.appendChild(del);
       list.appendChild(row);
     });
-    baCard.appendChild(list);
+    trapCard.appendChild(list);
   } else {
     const em = el("div","muted","No avoidance patterns logged today.");
     em.style.cssText = "font-size:12px;margin-top:8px;";
-    baCard.appendChild(em);
+    trapCard.appendChild(em);
   }
-  wrap.appendChild(baCard);
+  wrap.appendChild(trapCard);
 
   const sched = el("div","card"); sched.style.marginTop="14px";
   const schedHead = h3("Schedule");
@@ -1411,30 +1403,27 @@ function renderToday(){
   sched.appendChild(sg);
   wrap.appendChild(sched);
 
-  const choresCard = el("div","card"); choresCard.style.marginTop="14px";
-  const chHeader = h3("Chores for this day"); chHeader.appendChild(el("span","count",`(${occurrencesOnDate(iso).length})`));
-  const addCh = el("button","btn ghost"); addCh.style.cssText="margin-left:auto;font-size:12px;"; addCh.textContent="+ Add"; addCh.onclick=()=>openChoreModal(null, iso); chHeader.appendChild(addCh);
-  choresCard.appendChild(chHeader);
-  const occ = occurrencesOnDate(iso);
-  if (!occ.length) choresCard.appendChild(el("div","empty-state","No chores for this day."));
-  else {
-    const list = el("div","today-chores");
-    occ.forEach(o=>{
-      const r = el("div","today-chore-row");
-      const done = !!(o.chore.completed && o.chore.completed[iso]);
-      if (done) r.classList.add("done");
-      const cb = el("input"); cb.type="checkbox"; cb.checked=done;
-      cb.onchange = ()=>toggleChoreComplete(o.chore.id, iso, cb.checked);
-      r.appendChild(cb);
-      r.appendChild(el("span","tt", o.chore.time ? fmtTime(o.chore.time) : "All day"));
-      const tt = el("span","ti", o.chore.title); tt.style.cursor="pointer"; tt.onclick=()=>openChoreModal(o.chore.id);
-      r.appendChild(tt);
-      if (o.chore.recurrence && o.chore.recurrence.type!=="none") r.appendChild(el("span","ag-recur", recurrenceSummary(o.chore.recurrence)));
-      list.appendChild(r);
-    });
-    choresCard.appendChild(list);
-  }
-  wrap.appendChild(choresCard);
+  /* Life domains touched today (above Evening reflection) */
+  const domCard = el("div","card"); domCard.style.marginTop="14px";
+  domCard.appendChild(h3("Life domains touched today"));
+  const domSubtitle = el("div","muted","Tap any domain your activity touched today.");
+  domSubtitle.style.cssText = "font-size:12px;margin-bottom:10px;line-height:1.5;";
+  domCard.appendChild(domSubtitle);
+  if (!Array.isArray(entry.domains)) entry.domains = [];
+  const domRow = el("div","domain-chips");
+  DOMAINS.forEach(dn=>{
+    const chip = el("button","domain-chip");
+    if (entry.domains.includes(dn.key)) chip.classList.add("active");
+    chip.appendChild(el("span","",dn.short));
+    chip.onclick = ()=>{
+      const i = entry.domains.indexOf(dn.key);
+      if (i>=0) entry.domains.splice(i,1); else entry.domains.push(dn.key);
+      persist(); render();
+    };
+    domRow.appendChild(chip);
+  });
+  domCard.appendChild(domRow);
+  wrap.appendChild(domCard);
 
   const evening = el("div","card"); evening.style.marginTop="14px";
   evening.appendChild(h3("🌙 Evening reflection"));
