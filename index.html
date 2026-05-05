@@ -1489,32 +1489,6 @@ function renderToday(){
   row1.appendChild(planner);
   wrap.appendChild(row1);
 
-  const sched = el("div","card"); sched.style.marginTop="14px";
-  const schedHead = h3("Schedule");
-  const addHabitBtn = el("button","btn ghost","+ Add habit");
-  addHabitBtn.style.cssText = "margin-left:auto;font-size:12px;";
-  addHabitBtn.onclick = ()=>openHabitModal(null);
-  schedHead.appendChild(addHabitBtn);
-  const sugBtn = el("button","btn ghost","✨ Suggestions");
-  sugBtn.style.cssText = "font-size:12px;";
-  sugBtn.title = "Add habits from your BA plan";
-  sugBtn.onclick = ()=>openSuggestionsModal();
-  schedHead.appendChild(sugBtn);
-  sched.appendChild(schedHead);
-  const sg = el("div","schedule-grid");
-  for (let h=6; h<=22; h++){
-    sg.appendChild(el("div","hr",`${h%12===0?12:h%12}${h<12?" AM":" PM"}`));
-    const sl = el("div","sl");
-    const pins = occurrencesOnDate(iso).filter(o => o.chore.time && Number(o.chore.time.split(":")[0])===h);
-    pins.forEach(o=>{ const p=el("span","chore-pin",o.chore.title); p.onclick=()=>openChoreModal(o.chore.id); sl.appendChild(p); });
-    const inp = el("input"); inp.type="text"; inp.className="auto-input"; inp.value=entry.schedule[String(h)]||""; inp.placeholder="…";
-    inp.oninput = ()=>{ entry.schedule[String(h)]=inp.value; persist(); };
-    sl.appendChild(inp);
-    sg.appendChild(sl);
-  }
-  sched.appendChild(sg);
-  wrap.appendChild(sched);
-
   /* TRAP→TRAC (above Evening reflection) */
   const trapCard = el("div","card"); trapCard.style.marginTop="14px";
   const sHead = el("div"); sHead.style.cssText = "display:flex;align-items:center;gap:10px;flex-wrap:wrap;";
