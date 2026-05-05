@@ -1828,7 +1828,7 @@ function renderHabits(){
 function appendInlineSuggestions(wrap){
   const sugCard = el("div","card"); sugCard.style.marginTop="14px";
   const sugHead = h3("Suggestions from your BA plan");
-  const remaining = SUGGESTED_HABITS.filter(s=>!isHabitAlreadyAdded(s.name)).length;
+  const remaining = getMergedSuggestions().filter(s=>!isHabitAlreadyAdded(s.name)).length;
   sugHead.appendChild(el("span","count", `(${remaining} not yet added)`));
   sugCard.appendChild(sugHead);
   const sugFilters = el("div");
@@ -2175,6 +2175,15 @@ function isHabitAlreadyAdded(name){
   return state.habits.some(h => !h.archivedAt && norm(h.name) === target);
 }
 
+function getMergedSuggestions(){
+  const norm = s => s.toLowerCase().replace(/\s+/g," ").trim();
+  const known = new Set(SUGGESTED_HABITS.map(s => norm(s.name)));
+  const extras = state.habits
+    .filter(h => !h.archivedAt && h.category && !known.has(norm(h.name)))
+    .map(h => ({ name: h.name, category: h.category, domain: h.domain || null }));
+  return [...SUGGESTED_HABITS, ...extras];
+}
+
 function addSuggestedHabit(s){
   if (isHabitAlreadyAdded(s.name)) return false;
   state.habits.push(stamp({
@@ -2210,11 +2219,14 @@ function renderSuggestionsList(filtersEl, listEl){
     filtersEl.appendChild(b);
   });
 
-  // List grouped by category
+  // List grouped by category (includes user-added habits not in the static list)
+  const merged = getMergedSuggestions();
   listEl.innerHTML = "";
   HABIT_CATEGORIES.forEach(cat=>{
     if (suggestFilter && suggestFilter !== cat.key) return;
-    const items = SUGGESTED_HABITS.filter(s => s.category === cat.key);
+    const items = merged
+      .filter(s => s.category === cat.key)
+      .sort((a,b) => a.name.localeCompare(b.name));
     if (!items.length) return;
     const head = el("div","suggest-section-head", cat.label);
     listEl.appendChild(head);
@@ -2246,7 +2258,7 @@ function renderSuggestionsList(filtersEl, listEl){
 }
 
 function addAllSuggestedNotYetAdded(){
-  let toAdd = SUGGESTED_HABITS.filter(s => !isHabitAlreadyAdded(s.name));
+  let toAdd = getMergedSuggestions().filter(s => !isHabitAlreadyAdded(s.name));
   if (suggestFilter) toAdd = toAdd.filter(s => s.category === suggestFilter);
   if (!toAdd.length){ alert("Nothing new to add — all suggestions already in your habits."); return; }
   if (!confirm(`Add ${toAdd.length} habit${toAdd.length===1?"":"s"} to your list?`)) return;
