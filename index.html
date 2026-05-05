@@ -299,7 +299,7 @@
   }
   .wt-cell-body.today { background: #fef9ea; }
   .wt-input {
-    width: 100%; min-height: 64px; resize: vertical;
+    width: 100%; min-height: 44px; resize: vertical;
     border: none; outline: none; background: transparent;
     font: inherit; color: var(--ink); font-size: 12px;
     line-height: 1.35; padding: 4px; border-radius: 4px;
@@ -313,7 +313,7 @@
   .wt-section-head { font-size: 13px; font-weight: 700; color: var(--ink-soft); letter-spacing: 1px; text-transform: uppercase; margin: 6px 0 8px; }
   @media (max-width: 720px) {
     .wt-grid { grid-template-columns: 64px repeat(7, minmax(80px, 1fr)); overflow-x: auto; }
-    .wt-input { font-size: 11px; min-height: 56px; }
+    .wt-input { font-size: 11px; min-height: 40px; }
   }
 
   .agenda { background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
@@ -941,7 +941,11 @@ function defaultIdentity(){
   return { statements: DEFAULT_IDENTITY.slice(), _updatedAt: nowISO() };
 }
 
-const WEEKLY_BLOCKS = ["9–10 am","10–11 am","12–1 pm","2–5 pm","5–7 pm","7–9 pm"];
+const WEEKLY_BLOCKS = [
+  "6–7 am","7–8 am","8–9 am","9–10 am","10–11 am","11 am–12 pm",
+  "12–1 pm","1–2 pm","2–3 pm","3–4 pm","4–5 pm","5–6 pm",
+  "6–7 pm","7–8 pm","8–9 pm","9–10 pm",
+];
 const WEEKLY_DAY_KEYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const WEEKLY_MINIMUMS = [
   "3 mastery activities",
@@ -973,7 +977,7 @@ const DEFAULT_WEEKLY_DATA = {
     Sat:"Practice a skill I'm bad at while giving myself compassion",
     Sun:"20 min outside, no phone",
   },
-  "2–5 pm": {
+  "2–3 pm": {
     Mon:"Read for 30 min",
     Tue:"Create something for 30 min",
     Wed:"Create something for 30 min\nWorkout",
@@ -982,7 +986,7 @@ const DEFAULT_WEEKLY_DATA = {
     Sat:"Go through clothes I don't wear anymore & post on Depop",
     Sun:"Read for 30 min\nWorkout",
   },
-  "5–7 pm": {
+  "5–6 pm": {
     Mon:"Workout",
     Tue:"Workout",
     Wed:"Cooking nights / dinner w/ roommates",
@@ -991,7 +995,7 @@ const DEFAULT_WEEKLY_DATA = {
     Sat:"Call mom / check in w/ family member",
     Sun:"Neuroplasticity work for 1 hr",
   },
-  "7–9 pm": {
+  "7–8 pm": {
     Mon:"Journal for 15 min",
     Tue:"Journal for 15 min",
     Wed:"Journal for 15 min",
@@ -1001,6 +1005,26 @@ const DEFAULT_WEEKLY_DATA = {
     Sun:"Journal for 30 min",
   },
 };
+/* Map old multi-hour block keys to their new start-hour keys, for users who
+   already had data saved before the switch to hourly rows. */
+const WEEKLY_BLOCK_MIGRATION = { "2–5 pm":"2–3 pm", "5–7 pm":"5–6 pm", "7–9 pm":"7–8 pm" };
+function migrateWeeklyTemplate(t){
+  if (!t || !t.data) return t;
+  let changed = false;
+  for (const [oldKey, newKey] of Object.entries(WEEKLY_BLOCK_MIGRATION)){
+    const oldRow = t.data[oldKey];
+    if (!oldRow) continue;
+    t.data[newKey] = t.data[newKey] || {};
+    for (const day of WEEKLY_DAY_KEYS){
+      const v = oldRow[day];
+      if (v && !t.data[newKey][day]) t.data[newKey][day] = v;
+    }
+    delete t.data[oldKey];
+    changed = true;
+  }
+  if (changed) t._updatedAt = nowISO();
+  return t;
+}
 function defaultWeeklyTemplate(){
   // Deep clone so callers can mutate without touching the constant.
   const data = {};
@@ -1217,7 +1241,7 @@ const state = {
   reviews: loadReviews(),
   values: loadValues() || defaultValues(),
   identity: loadIdentity() || defaultIdentity(),
-  weeklyTemplate: loadWeekly() || defaultWeeklyTemplate(),
+  weeklyTemplate: migrateWeeklyTemplate(loadWeekly() || defaultWeeklyTemplate()),
   editingChoreId: null,
   editingChoreWeekdays: [],
   editingHabitId: null,
@@ -1698,7 +1722,7 @@ function renderWeeklyTemplate(){
       ta.className = "wt-input";
       ta.value = (state.weeklyTemplate.data[block] && state.weeklyTemplate.data[block][dayKey]) || "";
       ta.placeholder = "—";
-      ta.rows = 3;
+      ta.rows = 2;
       ta.oninput = ()=>{
         if (!state.weeklyTemplate.data[block]) state.weeklyTemplate.data[block] = {};
         state.weeklyTemplate.data[block][dayKey] = ta.value;
@@ -2389,7 +2413,7 @@ function applySnapshot(snap){
   state.reviews = snap.reviews || {};
   state.values = snap.values || defaultValues();
   state.identity = snap.identity || defaultIdentity();
-  state.weeklyTemplate = snap.weeklyTemplate || defaultWeeklyTemplate();
+  state.weeklyTemplate = migrateWeeklyTemplate(snap.weeklyTemplate || defaultWeeklyTemplate());
   saveJSON(K_CHORES, state.chores);
   saveJSON(K_HABITS, state.habits);
   saveJSON(K_HABIT_LOG, state.habitLog);
