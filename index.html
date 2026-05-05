@@ -1624,7 +1624,8 @@ function renderCalendar(){
   const title = el("h2");
   const subSwitch = el("div");
   subSwitch.style.cssText = "display:inline-flex;gap:2px;background:var(--accent-bg);padding:3px;border-radius:999px;";
-  for (const s of ["month","week","agenda"]){
+  if (state.calSubView !== "month" && state.calSubView !== "week") state.calSubView = "week";
+  for (const s of ["month","week"]){
     const b = el("button",""); b.textContent = s[0].toUpperCase()+s.slice(1);
     b.style.cssText = "background:transparent;border:none;padding:7px 14px;font-size:13px;color:var(--ink-soft);cursor:pointer;border-radius:999px;font-weight:600;";
     if (state.calSubView === s){ b.style.background="var(--paper)"; b.style.color="var(--accent-deep)"; }
@@ -1636,25 +1637,23 @@ function renderCalendar(){
   const next = el("button","icon-btn","›"); next.onclick = ()=>{ moveCursor(1); render(); };
 
   if (state.calSubView === "month") title.textContent = `${MONTHS[state.cursor.getMonth()]} ${state.cursor.getFullYear()}`;
-  else if (state.calSubView === "week") {
+  else {
     const ws = startOfWeek(state.cursor), we = addDays(ws,6);
     title.textContent = ws.getMonth()===we.getMonth()
       ? `${MONTHS[ws.getMonth()]} ${ws.getDate()}–${we.getDate()}, ${ws.getFullYear()}`
       : `${MONTHS[ws.getMonth()]} ${ws.getDate()} – ${MONTHS[we.getMonth()]} ${we.getDate()}, ${we.getFullYear()}`;
-  } else title.textContent = "Upcoming · next 60 days";
+  }
 
   bar.appendChild(title); bar.appendChild(prev); bar.appendChild(today); bar.appendChild(next); bar.appendChild(subSwitch);
   wrap.appendChild(bar);
 
   if (state.calSubView === "month") wrap.appendChild(renderMonthGrid());
-  else if (state.calSubView === "week") wrap.appendChild(renderWeekGrid());
-  else wrap.appendChild(renderAgenda());
+  else wrap.appendChild(renderWeekGrid());
   return wrap;
 }
 function moveCursor(dir){
   if (state.calSubView === "month") state.cursor = addMonths(state.cursor, dir);
-  else if (state.calSubView === "week") state.cursor = addDays(state.cursor, 7*dir);
-  else state.cursor = addDays(state.cursor, 14*dir);
+  else state.cursor = addDays(state.cursor, 7*dir);
 }
 function renderMonthGrid(){
   const wrap = el("div","month-grid");
@@ -1671,29 +1670,13 @@ function renderMonthGrid(){
     const e = state.entries[iso];
     if (e && e.mood){ const m=el("span","mood-pill"); m.style.background=`var(--mood-${e.mood})`; m.title=`Mood: ${MOOD_EMOJI[e.mood]}`; num.appendChild(m); }
     cell.appendChild(num);
-    const occ = occurrencesOnDate(iso);
-    occ.slice(0,3).forEach(o => cell.appendChild(makeChip(o.chore, iso)));
-    if (occ.length>3) cell.appendChild(el("div","more-link", `+${occ.length-3} more`));
     cell.onclick = ()=>{ state.todayCursor=d; state.view="today"; render(); };
     wrap.appendChild(cell);
   }
   return wrap;
 }
-function chipClass(iso, c){ const t=toISO(new Date()); if (c.completed && c.completed[iso]) return "done"; if (iso<t) return "overdue"; if (iso===t) return "today-chip"; return "upcoming"; }
-function makeChip(c, iso){
-  const chip = el("div","chip "+chipClass(iso,c));
-  chip.appendChild(el("span","dot"));
-  chip.appendChild(el("span","", c.time?`${fmtTime(c.time)} ${c.title}`:c.title));
-  chip.onclick = (e)=>{ e.stopPropagation(); openChoreModal(c.id); };
-  return chip;
-}
 function renderWeekGrid(){
-  const wrap = el("div");
-  wrap.appendChild(renderWeeklyTemplate());
-  const choresHead = el("div","wt-section-head","Chores this week");
-  wrap.appendChild(choresHead);
-  wrap.appendChild(renderWeekChores());
-  return wrap;
+  return renderWeeklyTemplate();
 }
 function renderWeeklyTemplate(){
   const wrap = el("div","weekly-template");
@@ -1741,47 +1724,6 @@ function renderWeeklyTemplate(){
   for (const m of WEEKLY_MINIMUMS) list.appendChild(el("li","",m));
   mins.appendChild(list);
   wrap.appendChild(mins);
-  return wrap;
-}
-function renderWeekChores(){
-  const wrap = el("div","week-grid"); const ws = startOfWeek(state.cursor); const todayISO = toISO(new Date());
-  for (let i=0;i<7;i++){
-    const d = addDays(ws,i); const iso = toISO(d);
-    const col = el("div","week-col"); if (iso===todayISO) col.classList.add("today");
-    const head = el("div","week-head");
-    head.appendChild(el("div","wh-label", DOW_SHORT[d.getDay()].toUpperCase()));
-    head.appendChild(el("div","wh-day", String(d.getDate())));
-    col.appendChild(head);
-    const occ = occurrencesOnDate(iso);
-    if (!occ.length){ const em=el("div"); em.style.cssText="color:var(--ink-faint);font-size:11px;text-align:center;margin-top:12px;"; em.textContent="—"; col.appendChild(em); }
-    else occ.forEach(o=>col.appendChild(makeChip(o.chore,iso)));
-    col.onclick = (e)=>{ if (e.target.closest(".chip")) return; state.todayCursor=d; state.view="today"; render(); };
-    wrap.appendChild(col);
-  }
-  return wrap;
-}
-function renderAgenda(){
-  const wrap = el("div","agenda");
-  const start = new Date(state.cursor); start.setHours(0,0,0,0); const end = addDays(start,60);
-  const byDate = {};
-  for (const c of state.chores) for (const iso of expandOccurrences(c,start,end)) (byDate[iso]=byDate[iso]||[]).push(c);
-  const dates = Object.keys(byDate).sort();
-  if (!dates.length){ wrap.appendChild(el("div","empty-state","No chores in the next 60 days.")); return wrap; }
-  for (const iso of dates){
-    wrap.appendChild(el("div","ag-group-head", fmtDateLong(fromISO(iso))));
-    byDate[iso].sort((a,b)=>(a.time||"").localeCompare(b.time||""));
-    for (const c of byDate[iso]){
-      const row = el("div","ag-item");
-      const cb = el("input"); cb.type="checkbox"; cb.checked = !!(c.completed && c.completed[iso]);
-      cb.onchange = ()=>toggleChoreComplete(c.id, iso, cb.checked);
-      row.appendChild(cb);
-      row.appendChild(el("span","ag-time", c.time?fmtTime(c.time):"All day"));
-      const tt = el("span","ag-title"+(cb.checked?" done":""), c.title); tt.style.cursor="pointer"; tt.onclick=()=>openChoreModal(c.id);
-      row.appendChild(tt);
-      if (c.recurrence && c.recurrence.type!=="none") row.appendChild(el("span","ag-recur", recurrenceSummary(c.recurrence)));
-      wrap.appendChild(row);
-    }
-  }
   return wrap;
 }
 
