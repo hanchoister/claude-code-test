@@ -849,85 +849,77 @@ const HABIT_CAT_BY_KEY = Object.fromEntries(HABIT_CATEGORIES.map(c=>[c.key, c]))
 
 /* Activities from BA Plan Parts 1-4. Each has category + domain. */
 const SUGGESTED_HABITS = [
-  // Part 2.A — Pleasure
-  { name:"Drink a fun drink (no water/alcohol)",        category:"pleasure",   domain:"home" },
+  // Pleasure (alphabetical)
   { name:"20 minutes outside, no phone",                 category:"pleasure",   domain:"growth" },
   { name:"Comfort movie + snacks, no guilt",             category:"pleasure",   domain:"creativity" },
+  { name:"Drink a fun drink (no water/alcohol)",         category:"pleasure",   domain:"home" },
   { name:"Favorite playlist on full volume while cooking", category:"pleasure", domain:"home" },
-  { name:"Pinterest scroll / online window shopping",    category:"pleasure",   domain:"creativity" },
-  // Weekly template additions
-  { name:"Sleep in on weekends (not past noon)",         category:"pleasure",   domain:"health" },
   { name:"Movie night / go out / hang with friends",     category:"pleasure",   domain:"relationships" },
+  { name:"Pinterest scroll / online window shopping",    category:"pleasure",   domain:"creativity" },
+  { name:"Sleep in on weekends (not past noon)",         category:"pleasure",   domain:"health" },
 
-  // Part 2.B — Mastery
-  { name:"Make bed within 5 min of waking",              category:"mastery",    domain:"home" },
-  { name:"Wash one sink of dishes",                      category:"mastery",    domain:"home" },
+  // Mastery (alphabetical)
   { name:"25-min Pomodoro work block",                   category:"mastery",    domain:"work" },
-  { name:"Reply to one avoided email",                   category:"mastery",    domain:"work" },
-  { name:"Tidy one area in bedroom",                     category:"mastery",    domain:"home" },
-  { name:"Sort clothes & post on Depop",                 category:"mastery",    domain:"money" },
+  { name:"3 sets of Pomodoro work",                      category:"mastery",    domain:"work" },
+  { name:"Ask AI to break a stuck task into steps",      category:"mastery",    domain:"work" },
   { name:"Learn something new about a career I want",    category:"mastery",    domain:"work" },
-  { name:"Practice a skill I'm bad at (with self-compassion)", category:"mastery", domain:"growth" },
-  // Part 3 ladder steps (treated as Mastery wins)
+  { name:"Make bed within 5 min of waking",              category:"mastery",    domain:"home" },
+  { name:"Make to-do list with priorities",              category:"mastery",    domain:"work" },
   { name:"Pick out workout clothes",                     category:"mastery",    domain:"health" },
   { name:"Plan workout / book a class",                  category:"mastery",    domain:"health" },
+  { name:"Practice a skill I'm bad at (with self-compassion)", category:"mastery", domain:"growth" },
+  { name:"Reply to one avoided email",                   category:"mastery",    domain:"work" },
+  { name:"Sort clothes & post on Depop",                 category:"mastery",    domain:"money" },
   { name:"Stretch / dynamic warm-up",                    category:"mastery",    domain:"health" },
-  { name:"Make to-do list with priorities",              category:"mastery",    domain:"work" },
-  { name:"Ask AI to break a stuck task into steps",      category:"mastery",    domain:"work" },
-  // Weekly template additions
-  { name:"3 sets of Pomodoro work",                      category:"mastery",    domain:"work" },
+  { name:"Tidy one area in bedroom",                     category:"mastery",    domain:"home" },
+  { name:"Wash one sink of dishes",                      category:"mastery",    domain:"home" },
 
-  // Part 2.C — Connection
-  { name:"Text one friend 'thinking of you, no reply needed'", category:"connection", domain:"relationships" },
-  { name:"Check in with one family member",              category:"connection", domain:"relationships" },
-  { name:"Work from a coffee shop",                      category:"connection", domain:"community" },
-  { name:"Schedule a phone call with a specific friend", category:"connection", domain:"relationships" },
-  { name:"Reply to an old group chat",                   category:"connection", domain:"relationships" },
-  { name:"Say hi to neighbor / barista / doorman by name", category:"connection", domain:"community" },
-  { name:"Cooking night with roommates",                 category:"connection", domain:"relationships" },
-  { name:"Respond to texts within 2 days",               category:"connection", domain:"relationships" },
-  { name:"Talk to someone new",                          category:"connection", domain:"community" },
-  // Part 1
-  { name:"Volunteer (NY Cares, soup kitchen, cat cafe)", category:"connection", domain:"community" },
+  // Connection (alphabetical)
   { name:"Call a friend",                                category:"connection", domain:"relationships" },
+  { name:"Check in with one family member",              category:"connection", domain:"relationships" },
+  { name:"Cooking night with roommates",                 category:"connection", domain:"relationships" },
+  { name:"Reply to an old group chat",                   category:"connection", domain:"relationships" },
+  { name:"Respond to texts within 2 days",               category:"connection", domain:"relationships" },
+  { name:"Say hi to neighbor / barista / doorman by name", category:"connection", domain:"community" },
+  { name:"Schedule a phone call with a specific friend", category:"connection", domain:"relationships" },
+  { name:"Talk to someone new",                          category:"connection", domain:"community" },
+  { name:"Text one friend 'thinking of you, no reply needed'", category:"connection", domain:"relationships" },
+  { name:"Volunteer (NY Cares, soup kitchen, cat cafe)", category:"connection", domain:"community" },
+  { name:"Work from a coffee shop",                      category:"connection", domain:"community" },
 
-  // Part 2.D — Body
-  { name:"5-min stretch after waking",                   category:"body",       domain:"health" },
-  { name:"Drink a full glass of water before coffee",    category:"body",       domain:"health" },
-  { name:"Get morning sunlight within 1 hr of waking",   category:"body",       domain:"health" },
-  { name:"Eat a real meal (not just snacks)",            category:"body",       domain:"health" },
-  { name:"30-min walk / workout",                        category:"body",       domain:"health" },
-  { name:"Shower and put on real clothes",               category:"body",       domain:"health" },
-  { name:"In bed by 10:30pm, phone in another room",     category:"body",       domain:"health" },
-  // Part 1 + Part 4
-  { name:"Wake up at the same time every day",           category:"body",       domain:"health" },
+  // Body (alphabetical)
   { name:"15-min walk outside or treadmill",             category:"body",       domain:"health" },
-  { name:"Workout (3 exercises × 4 sets × 8–10 reps)",   category:"body",       domain:"health" },
-  // Interoception practices
+  { name:"30-min walk / workout",                        category:"body",       domain:"health" },
+  { name:"4-in / 8-out breath (~1 min)",                 category:"body",       domain:"health" },
+  { name:"5-4-3-2-1 grounding",                          category:"body",       domain:"health" },
+  { name:"5-min stretch after waking",                   category:"body",       domain:"health" },
+  { name:"Body scan, head to toe (2 min)",               category:"body",       domain:"health" },
+  { name:"Drink a full glass of water before coffee",    category:"body",       domain:"health" },
+  { name:"Eat a real meal (not just snacks)",            category:"body",       domain:"health" },
+  { name:"Get morning sunlight within 1 hr of waking",   category:"body",       domain:"health" },
+  { name:"Hand on heart, feel heartbeat (60 sec)",       category:"body",       domain:"health" },
+  { name:"In bed by 10:30pm, phone in another room",     category:"body",       domain:"health" },
   { name:"Physiological sigh (2 nasal in, long mouth out × 3)", category:"body", domain:"health" },
-  { name:"Body scan, head to toe (2 min)",                category:"body",       domain:"health" },
-  { name:"Hand on heart, feel heartbeat (60 sec)",        category:"body",       domain:"health" },
-  { name:"4-in / 8-out breath (~1 min)",                  category:"body",       domain:"health" },
-  { name:"5-4-3-2-1 grounding",                           category:"body",       domain:"health" },
+  { name:"Shower and put on real clothes",               category:"body",       domain:"health" },
+  { name:"Wake up at the same time every day",           category:"body",       domain:"health" },
+  { name:"Workout (3 exercises × 4 sets × 8–10 reps)",   category:"body",       domain:"health" },
 
-  // Part 2.E — Meaning
-  { name:"Sketch for 10 minutes",                        category:"meaning",    domain:"creativity" },
-  { name:"Journal for 20 minutes",                       category:"meaning",    domain:"growth" },
-  { name:"Practice Claude code for 30 min",              category:"meaning",    domain:"work" },
-  { name:"Read a chapter of a real book",                category:"meaning",    domain:"growth" },
-  { name:"Volunteer hour / help a friend with something", category:"meaning",   domain:"community" },
-  { name:"Practice knitting for 30 min",                 category:"meaning",    domain:"creativity" },
-  { name:"Neuroplasticity work for 1 hr",                category:"meaning",    domain:"growth" },
-  { name:"Give myself feedback in a kind/loving way",    category:"meaning",    domain:"growth" },
-  { name:"Read/learn something I'm curious about",       category:"meaning",    domain:"growth" },
-  { name:"Read the bible / podcasts / pray",             category:"meaning",    domain:"growth" },
-  // Part 1
-  { name:"Try my best at something for 10 min",          category:"meaning",    domain:"growth" },
-  // Weekly template additions
-  { name:"Therapy session",                              category:"meaning",    domain:"growth" },
+  // Meaning (alphabetical)
   { name:"Create something for 30 min",                  category:"meaning",    domain:"creativity" },
-  { name:"Read for 30 min",                              category:"meaning",    domain:"growth" },
+  { name:"Give myself feedback in a kind/loving way",    category:"meaning",    domain:"growth" },
+  { name:"Journal for 20 minutes",                       category:"meaning",    domain:"growth" },
   { name:"Journal for 30 min",                           category:"meaning",    domain:"growth" },
+  { name:"Neuroplasticity work for 1 hr",                category:"meaning",    domain:"growth" },
+  { name:"Practice Claude code for 30 min",              category:"meaning",    domain:"work" },
+  { name:"Practice knitting for 30 min",                 category:"meaning",    domain:"creativity" },
+  { name:"Read a chapter of a real book",                category:"meaning",    domain:"growth" },
+  { name:"Read for 30 min",                              category:"meaning",    domain:"growth" },
+  { name:"Read the bible / podcasts / pray",             category:"meaning",    domain:"growth" },
+  { name:"Read/learn something I'm curious about",       category:"meaning",    domain:"growth" },
+  { name:"Sketch for 10 minutes",                        category:"meaning",    domain:"creativity" },
+  { name:"Therapy session",                              category:"meaning",    domain:"growth" },
+  { name:"Try my best at something for 10 min",          category:"meaning",    domain:"growth" },
+  { name:"Volunteer hour / help a friend with something", category:"meaning",   domain:"community" },
 ];
 
 const MOTIVATION_RULES = [
