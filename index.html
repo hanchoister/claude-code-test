@@ -565,8 +565,7 @@
 <header class="topbar">
   <div class="brand">Journal<span class="dot">.</span></div>
   <nav class="views" id="views">
-    <button data-view="dashboard" class="active">Home</button>
-    <button data-view="today">Today</button>
+    <button data-view="today" class="active">Today</button>
     <button data-view="calendar">Cal</button>
     <button data-view="habits">Habits</button>
     <button data-view="plan">Plan</button>
@@ -1242,7 +1241,7 @@ function isEmptyEntry(e){
    STATE
    ════════════════════════════════════════════════════════ */
 const state = {
-  view: "dashboard",
+  view: "today",
   cursor: new Date(),
   todayCursor: new Date(),
   calSubView: "month",
@@ -1274,8 +1273,7 @@ function render(){
   document.querySelectorAll("#views button").forEach(b => b.classList.toggle("active", b.dataset.view === state.view));
   const main = document.getElementById("main");
   main.innerHTML = "";
-  if      (state.view === "dashboard") main.appendChild(renderDashboard());
-  else if (state.view === "today")     main.appendChild(renderToday());
+  if      (state.view === "today")     main.appendChild(renderToday());
   else if (state.view === "calendar")  main.appendChild(renderCalendar());
   else if (state.view === "habits")    main.appendChild(renderHabits());
   else if (state.view === "plan")      main.appendChild(renderPlan());
@@ -1325,124 +1323,6 @@ function renderReminderBanner(){
     row.appendChild(actions);
     banner.appendChild(row);
   }
-}
-
-/* ───────── Dashboard ───────── */
-function renderDashboard(){
-  const wrap = el("div");
-  const today = new Date(); today.setHours(0,0,0,0);
-  const todayISO = toISO(today);
-
-  const head = el("div","page-head");
-  head.appendChild(el("h2","", fmtDateLong(today)));
-  const go = el("button","btn primary","Open today →");
-  go.onclick = ()=>{ state.view="today"; state.todayCursor=new Date(); render(); };
-  head.appendChild(go);
-  wrap.appendChild(head);
-
-  const grid = el("div","grid-2");
-
-  const entry = getEntry(todayISO);
-  const gist = el("div","card");
-  gist.appendChild(h3("Today at a glance"));
-  const prs = entry.priorities.filter(s=>s.trim());
-  if (prs.length) {
-    const lbl = el("div","muted","Top priorities"); lbl.style.cssText="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;";
-    gist.appendChild(lbl);
-    const ul = el("ol"); ul.style.cssText="padding-left:18px;margin-bottom:10px;";
-    prs.forEach(p=>{ const li = el("li","",p); li.style.marginBottom="2px"; ul.appendChild(li); });
-    gist.appendChild(ul);
-  } else {
-    const em = el("div","muted","No priorities set yet. Open today's page to plan.");
-    em.style.cssText="font-size:13px;margin-bottom:10px;"; gist.appendChild(em);
-  }
-  const moodSummary = [
-    entry.moodMorning   ? `AM ${MOOD_EMOJI[entry.moodMorning]}`   : null,
-    entry.moodAfternoon ? `PM ${MOOD_EMOJI[entry.moodAfternoon]}` : null,
-    entry.moodEvening   ? `Eve ${MOOD_EMOJI[entry.moodEvening]}`  : null,
-  ].filter(Boolean).join("  ·  ");
-  if (moodSummary){ const m=el("div","",`Mood: ${moodSummary}`); m.style.cssText="font-size:14px;margin-top:4px;"; gist.appendChild(m); }
-  const todayChores = occurrencesOnDate(todayISO);
-  if (todayChores.length){
-    const ct = el("div","muted",`Chores due today (${todayChores.length})`);
-    ct.style.cssText="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin:10px 0 4px;";
-    gist.appendChild(ct);
-    todayChores.forEach(o=>{ const r=el("div","","• "+o.chore.title); r.style.cssText="font-size:13px;padding-left:4px;"; if(o.chore.completed&&o.chore.completed[todayISO]){r.style.textDecoration="line-through";r.style.color="var(--ink-faint)";} gist.appendChild(r); });
-  }
-  grid.appendChild(gist);
-
-  const habitsCard = el("div","card");
-  habitsCard.appendChild(h3("Habit streaks"));
-  const active = state.habits.filter(h=>!h.archivedAt);
-  if (!active.length){
-    const ep = el("div","muted","No habits yet. ");
-    ep.style.cssText="font-size:13px;";
-    const lk = el("button","btn ghost","Add some →"); lk.style.fontSize="13px"; lk.onclick=()=>{ state.view="habits"; render(); };
-    ep.appendChild(lk); habitsCard.appendChild(ep);
-  } else {
-    const strip = el("div","habit-strip");
-    active.forEach(h=>{
-      const p = el("div","habit-pill");
-      p.appendChild(el("span","",h.name));
-      appendHabitTags(p, h);
-      const s = habitStreak(h.id);
-      p.appendChild(el("span","streak"+(s===0?" zero":""),`🔥 ${s}`));
-      strip.appendChild(p);
-    });
-    habitsCard.appendChild(strip);
-    const m = el("button","btn ghost","Manage habits →"); m.style.cssText="font-size:12px;margin-top:12px;"; m.onclick=()=>{ state.view="habits"; render(); };
-    habitsCard.appendChild(m);
-  }
-  grid.appendChild(habitsCard);
-  wrap.appendChild(grid);
-
-  const row2 = el("div","grid-2"); row2.style.marginTop="14px";
-  const miniWrap = el("div","card");
-  miniWrap.appendChild(h3("This month"));
-  miniWrap.appendChild(renderMiniMonth(today));
-  row2.appendChild(miniWrap);
-
-  const up = el("div","card");
-  up.appendChild(h3("Upcoming · next 7 days"));
-  const upcoming = [];
-  for (let i=0;i<7;i++){ const d=addDays(today,i); const iso=toISO(d); occurrencesOnDate(iso).forEach(o=>upcoming.push({...o, dateISO:iso})); }
-  if (!upcoming.length) up.appendChild(el("div","empty-state","Nothing due in the next week. Nice."));
-  else upcoming.forEach(o=>{
-    const r = el("div"); r.style.cssText="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-soft);";
-    const d = el("span","muted", DOW_SHORT[fromISO(o.dateISO).getDay()]+" · "+(o.dateISO===todayISO?"Today":fromISO(o.dateISO).getDate()));
-    d.style.cssText="font-size:12px;min-width:80px;"; r.appendChild(d);
-    const t = el("span","",o.chore.title); t.style.flex="1";
-    if (o.chore.completed && o.chore.completed[o.dateISO]){ t.style.textDecoration="line-through"; t.style.color="var(--ink-faint)"; }
-    r.appendChild(t);
-    if (o.chore.time){ const tm=el("span","muted",fmtTime(o.chore.time)); tm.style.fontSize="12px"; r.appendChild(tm); }
-    up.appendChild(r);
-  });
-  row2.appendChild(up);
-  wrap.appendChild(row2);
-  return wrap;
-}
-
-function renderMiniMonth(anchor){
-  const wrap = el("div","month-grid mini-cal");
-  for (const n of ["S","M","T","W","T","F","S"]) wrap.appendChild(el("div","dow",n));
-  const first = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
-  const gridStart = startOfWeek(first);
-  const todayISO = toISO(new Date());
-  for (let i=0;i<42;i++){
-    const d = addDays(gridStart,i); const iso = toISO(d);
-    const cell = el("div","day-cell" + (d.getMonth()!==anchor.getMonth()?" other-month":"") + (iso===todayISO?" today":""));
-    const num = el("div","day-num"); num.innerHTML = `<span class="num-inner">${d.getDate()}</span>`;
-    cell.appendChild(num);
-    const markers = el("div","mini-markers");
-    if (state.chores.some(c=>expandOccurrences(c,d,d).length)){ const dot=el("span","mini-dot"); dot.style.background="var(--accent)"; markers.appendChild(dot); }
-    const e = state.entries[iso];
-    const pm = primaryMood(e);
-    if (pm){ const dot=el("span","mini-dot"); dot.style.background=`var(--mood-${pm})`; markers.appendChild(dot); }
-    cell.appendChild(markers);
-    cell.onclick = ()=>{ state.view="today"; state.todayCursor=d; render(); };
-    wrap.appendChild(cell);
-  }
-  return wrap;
 }
 
 /* ───────── Today ───────── */
