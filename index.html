@@ -488,11 +488,12 @@
 
   /* Suggestions modal */
   .suggest-row {
-    display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center;
+    display: grid; grid-template-columns: 22px 1fr auto auto; gap: 8px; align-items: center;
     padding: 9px 12px; background: var(--paper); border: 1px solid var(--rule-soft);
     border-radius: 6px; margin-bottom: 6px; font-size: 13px;
   }
   .suggest-row.added { opacity: 0.55; }
+  .suggest-row.added .sg-edit { opacity: 1; }
   .suggest-row .sg-cat {
     display: inline-flex; align-items: center; justify-content: center;
     width: 22px; height: 22px; border-radius: 50%;
@@ -500,6 +501,12 @@
   }
   .suggest-row .sg-name { color: var(--ink); }
   .suggest-row .sg-meta { font-size: 10px; color: var(--ink-faint); margin-top: 2px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .suggest-row .sg-edit {
+    border: 1px solid var(--rule-soft); background: transparent; color: var(--ink-soft);
+    padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+  .suggest-row .sg-edit:hover { background: var(--rule-soft); color: var(--ink); }
   .suggest-row .sg-add {
     border: none; background: var(--accent); color: white; padding: 5px 12px;
     border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer;
@@ -638,6 +645,43 @@
       <button class="btn danger hide" id="chore-modal-delete">Delete</button>
       <button class="btn ghost" id="chore-modal-cancel">Cancel</button>
       <button class="btn primary" id="chore-modal-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Suggestion edit modal -->
+<div class="modal-bg" id="modal-suggestion-bg">
+  <div class="modal">
+    <div class="m-head"><h3>Edit suggestion</h3><button class="icon-btn" id="suggestion-modal-close">×</button></div>
+    <div class="m-body">
+      <div class="field"><label>Name</label><input type="text" id="sf-name" placeholder="e.g. 10-min yoga"></div>
+      <div class="field"><label>Life domain (optional)</label>
+        <select id="sf-domain">
+          <option value="">— None —</option>
+          <option value="health">Health & body</option>
+          <option value="work">Work / career / school</option>
+          <option value="relationships">Relationships</option>
+          <option value="creativity">Creativity & play</option>
+          <option value="growth">Mind / spirit / growth</option>
+          <option value="home">Home & environment</option>
+          <option value="money">Money & responsibilities</option>
+          <option value="community">Community / contribution</option>
+        </select>
+      </div>
+      <div class="field"><label>BA category</label>
+        <select id="sf-category">
+          <option value="pleasure">Pleasure — small joys, low-stakes</option>
+          <option value="mastery">Mastery — sense of accomplishment</option>
+          <option value="connection">Connection — anti-isolation, in any size</option>
+          <option value="body">Body & Self-Care — the foundation</option>
+          <option value="meaning">Meaning — values-aligned, even tiny versions</option>
+        </select>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn danger" id="suggestion-modal-delete">Delete</button>
+      <button class="btn ghost" id="suggestion-modal-cancel">Cancel</button>
+      <button class="btn primary" id="suggestion-modal-save">Save</button>
     </div>
   </div>
 </div>
@@ -795,6 +839,7 @@ const K_SYNC_NUDGED = "sync_nudged_v1";
 const K_VALUES    = "values_v2";
 const K_IDENTITY  = "identity_v1";
 const K_WEEKLY    = "weekly_template_v1";
+const K_SUGGESTIONS = "suggestions_v1";
 
 const DOW_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -1080,6 +1125,11 @@ function loadIdentity() { return loadJSON(K_IDENTITY, null); }
 function saveIdentity(v){ saveJSON(K_IDENTITY, v); markDirty(); }
 function loadWeekly()   { return loadJSON(K_WEEKLY, null); }
 function saveWeekly(v)  { saveJSON(K_WEEKLY, v); markDirty(); }
+function loadSuggestions(){ return loadJSON(K_SUGGESTIONS, null); }
+function saveSuggestions(v){ saveJSON(K_SUGGESTIONS, v); markDirty(); }
+function defaultSuggestions(){
+  return SUGGESTED_HABITS.map(s => ({ id: crypto.randomUUID(), name: s.name, category: s.category, domain: s.domain, _updatedAt: nowISO() }));
+}
 
 /* stamp _updatedAt on whatever we modify */
 function stamp(o){ if (o && typeof o === "object") o._updatedAt = nowISO(); return o; }
@@ -1253,7 +1303,9 @@ const state = {
   values: loadValues() || defaultValues(),
   identity: loadIdentity() || defaultIdentity(),
   weeklyTemplate: migrateWeeklyTemplate(loadWeekly() || defaultWeeklyTemplate()),
+  suggestions: loadSuggestions() || defaultSuggestions(),
   editingChoreId: null,
+  editingSuggestionId: null,
   editingChoreWeekdays: [],
   editingHabitId: null,
   sync: loadSyncConf(),       // { pat, gistId, lastSyncedAt }
@@ -2058,11 +2110,14 @@ function isHabitAlreadyAdded(name){
 
 function getMergedSuggestions(){
   const norm = s => s.toLowerCase().replace(/\s+/g," ").trim();
-  const known = new Set(SUGGESTED_HABITS.map(s => norm(s.name)));
+  const sugList = (state.suggestions || []).map(s => ({
+    id: s.id, name: s.name, category: s.category, domain: s.domain || null, source: "suggestion",
+  }));
+  const known = new Set(sugList.map(s => norm(s.name)));
   const extras = state.habits
     .filter(h => !h.archivedAt && h.category && !known.has(norm(h.name)))
-    .map(h => ({ name: h.name, category: h.category, domain: h.domain || null }));
-  return [...SUGGESTED_HABITS, ...extras];
+    .map(h => ({ id: h.id, name: h.name, category: h.category, domain: h.domain || null, source: "habit" }));
+  return [...sugList, ...extras];
 }
 
 function addSuggestedHabit(s){
@@ -2123,6 +2178,12 @@ function renderSuggestionsList(filtersEl, listEl){
       const dom = DOMAIN_BY_KEY[s.domain];
       body.appendChild(el("div","sg-meta", dom ? dom.short : "—"));
       row.appendChild(body);
+      const editBtn = el("button","sg-edit","Edit");
+      editBtn.onclick = ()=>{
+        if (s.source === "habit") openHabitModal(s.id);
+        else openSuggestionModal(s.id);
+      };
+      row.appendChild(editBtn);
       const btn = el("button","sg-add", added ? "Added" : "Add");
       if (!added){
         btn.onclick = ()=>{
@@ -2193,6 +2254,38 @@ function deleteHabitFromModal(){
   closeHabitModal(); render();
 }
 
+/* Suggestion edit modal */
+function openSuggestionModal(id){
+  state.editingSuggestionId = id;
+  const s = (state.suggestions || []).find(x=>x.id===id); if (!s) return;
+  $("sf-name").value = s.name || "";
+  $("sf-domain").value = s.domain || "";
+  $("sf-category").value = s.category || "pleasure";
+  $("modal-suggestion-bg").classList.add("show");
+  $("sf-name").focus();
+}
+function closeSuggestionModal(){ $("modal-suggestion-bg").classList.remove("show"); state.editingSuggestionId = null; }
+function saveSuggestionFromModal(){
+  const s = (state.suggestions || []).find(x=>x.id===state.editingSuggestionId); if (!s) return;
+  const n = $("sf-name").value.trim();
+  if (!n){ alert("Name is required."); return; }
+  s.name = n;
+  s.domain = $("sf-domain").value || null;
+  s.category = $("sf-category").value;
+  stamp(s);
+  saveSuggestions(state.suggestions);
+  closeSuggestionModal();
+  render();
+}
+function deleteSuggestionFromModal(){
+  if (!state.editingSuggestionId) return;
+  if (!confirm("Delete this suggestion? (Won't affect any habit you've already added.)")) return;
+  state.suggestions = state.suggestions.filter(x=>x.id!==state.editingSuggestionId);
+  saveSuggestions(state.suggestions);
+  closeSuggestionModal();
+  render();
+}
+
 /* ════════════════════════════════════════════════════════
    SYNC (GitHub Gist)
    ════════════════════════════════════════════════════════ */
@@ -2260,6 +2353,7 @@ function buildLocalSnapshot(){
     values: state.values,
     identity: state.identity,
     weeklyTemplate: state.weeklyTemplate,
+    suggestions: state.suggestions,
   };
 }
 function applySnapshot(snap){
@@ -2271,6 +2365,7 @@ function applySnapshot(snap){
   state.values = snap.values || defaultValues();
   state.identity = snap.identity || defaultIdentity();
   state.weeklyTemplate = migrateWeeklyTemplate(snap.weeklyTemplate || defaultWeeklyTemplate());
+  state.suggestions = Array.isArray(snap.suggestions) ? snap.suggestions : (state.suggestions || defaultSuggestions());
   saveJSON(K_CHORES, state.chores);
   saveJSON(K_HABITS, state.habits);
   saveJSON(K_HABIT_LOG, state.habitLog);
@@ -2279,6 +2374,7 @@ function applySnapshot(snap){
   saveJSON(K_VALUES, state.values);
   saveJSON(K_IDENTITY, state.identity);
   saveJSON(K_WEEKLY, state.weeklyTemplate);
+  saveJSON(K_SUGGESTIONS, state.suggestions);
 }
 
 /* Merge two snapshots. Returns { merged, conflicts } */
@@ -2295,6 +2391,7 @@ function mergeSnapshots(local, remote, lastSyncedAt, knownIds){
     values: mergeMap(local.values, remote.values, lastSyncedAt, conflicts, "value", (k)=>`Value · ${(DOMAIN_BY_KEY[k]&&DOMAIN_BY_KEY[k].label)||k}`, idSet(k.values)),
     identity: mergeBlob(local.identity, remote.identity, lastSyncedAt, conflicts, "identity", ()=>"Identity statements"),
     weeklyTemplate: mergeBlob(local.weeklyTemplate, remote.weeklyTemplate, lastSyncedAt, conflicts, "weeklyTemplate", ()=>"Weekly schedule template"),
+    suggestions: mergeArray(local.suggestions, remote.suggestions, "id", lastSyncedAt, conflicts, "suggestion", x=>x.name, idSet(k.suggestions)),
   };
   return { merged, conflicts };
 }
@@ -2306,6 +2403,7 @@ function snapshotKnownIds(snap){
     entries: Object.keys(snap.entries || {}),
     reviews: Object.keys(snap.reviews || {}),
     values:  Object.keys(snap.values  || {}),
+    suggestions: (snap.suggestions || []).map(x => x.id),
   };
 }
 function mergeArray(localArr, remoteArr, keyName, lastSyncedAt, conflicts, type, descFn, known){
@@ -2469,9 +2567,9 @@ async function applyConflictResolutions(){
   // replace remote-wins items
   for (const c of state.conflictQueue){
     const pick = c.resolution === "remote" ? c.remote : c.local;
-    if (c.type === "chore" || c.type === "habit"){
-      const arrKey = c.type === "chore" ? "chores" : "habits";
-      merged[arrKey] = merged[arrKey].filter(x => x.id !== c.id);
+    if (c.type === "chore" || c.type === "habit" || c.type === "suggestion"){
+      const arrKey = c.type === "chore" ? "chores" : c.type === "habit" ? "habits" : "suggestions";
+      merged[arrKey] = (merged[arrKey] || []).filter(x => x.id !== c.id);
       if (pick) merged[arrKey].push(pick);
     } else if (c.type === "entry"){
       if (pick) merged.entries[c.id] = pick; else delete merged.entries[c.id];
@@ -2601,6 +2699,12 @@ $("habit-modal-save").onclick = saveHabitFromModal;
 $("habit-modal-delete").onclick = deleteHabitFromModal;
 $("modal-habit-bg").addEventListener("click", e=>{ if (e.target.id==="modal-habit-bg") closeHabitModal(); });
 
+$("suggestion-modal-cancel").onclick = closeSuggestionModal;
+$("suggestion-modal-close").onclick = closeSuggestionModal;
+$("suggestion-modal-save").onclick = saveSuggestionFromModal;
+$("suggestion-modal-delete").onclick = deleteSuggestionFromModal;
+$("modal-suggestion-bg").addEventListener("click", e=>{ if (e.target.id==="modal-suggestion-bg") closeSuggestionModal(); });
+
 $("spiral-modal-close").onclick = closeSpiralModal;
 $("spiral-modal-cancel").onclick = closeSpiralModal;
 $("spiral-modal-save").onclick = saveSpiralFromModal;
@@ -2639,6 +2743,7 @@ document.addEventListener("keydown", e=>{
   if (e.key==="Escape"){
     if ($("modal-chore-bg").classList.contains("show")) closeChoreModal();
     else if ($("modal-habit-bg").classList.contains("show")) closeHabitModal();
+    else if ($("modal-suggestion-bg").classList.contains("show")) closeSuggestionModal();
     else if ($("modal-spiral-bg").classList.contains("show")) closeSpiralModal();
     else if ($("modal-rules-bg").classList.contains("show")) closeRulesModal();
     else if ($("modal-suggest-bg").classList.contains("show")) closeSuggestionsModal();
