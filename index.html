@@ -1177,6 +1177,9 @@ function emptyEntry(){
     affirmation: "",
     schedule: {},
     mood: null,
+    moodMorning: null,
+    moodAfternoon: null,
+    moodEvening: null,
     moodNote: "",
     exercise: "",
     wins: "",
@@ -1208,7 +1211,15 @@ function getEntry(iso){
   for (const k of ["gratitude","intentions","priorities"]){ if (!Array.isArray(e[k])) e[k] = base[k]; while (e[k].length<3) e[k].push(""); }
   if (!Array.isArray(e.domains)) e.domains = [];
   if (!Array.isArray(e.spirals)) e.spirals = [];
+  // Back-compat: legacy entries had a single .mood; place it under afternoon if no slotted moods are set yet.
+  if (e.mood != null && e.moodMorning == null && e.moodAfternoon == null && e.moodEvening == null){
+    e.moodAfternoon = e.mood;
+  }
   return { ...base, ...e };
+}
+function primaryMood(e){
+  if (!e) return null;
+  return e.moodEvening ?? e.moodAfternoon ?? e.moodMorning ?? e.mood ?? null;
 }
 function saveEntry(iso, e){
   if (isEmptyEntry(e)) delete state.entries[iso];
@@ -1223,7 +1234,8 @@ function isEmptyEntry(e){
   const hasSpirals = Array.isArray(e.spirals) && e.spirals.length > 0;
   const hasIntero = e.intero && Object.values(e.intero).some(v => v);
   const hasInteroNotes = e.interoNotes && Object.values(e.interoNotes).some(v => v && String(v).trim());
-  return !txt && !hasSched && e.mood == null && !hasDomains && !hasSpirals && !hasIntero && !hasInteroNotes;
+  const hasMood = e.mood != null || e.moodMorning != null || e.moodAfternoon != null || e.moodEvening != null;
+  return !txt && !hasSched && !hasMood && !hasDomains && !hasSpirals && !hasIntero && !hasInteroNotes;
 }
 
 /* ════════════════════════════════════════════════════════
@@ -1344,7 +1356,12 @@ function renderDashboard(){
     const em = el("div","muted","No priorities set yet. Open today's page to plan.");
     em.style.cssText="font-size:13px;margin-bottom:10px;"; gist.appendChild(em);
   }
-  if (entry.mood){ const m=el("div","",`Mood: ${MOOD_EMOJI[entry.mood]}`); m.style.cssText="font-size:14px;margin-top:4px;"; gist.appendChild(m); }
+  const moodSummary = [
+    entry.moodMorning   ? `AM ${MOOD_EMOJI[entry.moodMorning]}`   : null,
+    entry.moodAfternoon ? `PM ${MOOD_EMOJI[entry.moodAfternoon]}` : null,
+    entry.moodEvening   ? `Eve ${MOOD_EMOJI[entry.moodEvening]}`  : null,
+  ].filter(Boolean).join("  ·  ");
+  if (moodSummary){ const m=el("div","",`Mood: ${moodSummary}`); m.style.cssText="font-size:14px;margin-top:4px;"; gist.appendChild(m); }
   const todayChores = occurrencesOnDate(todayISO);
   if (todayChores.length){
     const ct = el("div","muted",`Chores due today (${todayChores.length})`);
@@ -1419,7 +1436,8 @@ function renderMiniMonth(anchor){
     const markers = el("div","mini-markers");
     if (state.chores.some(c=>expandOccurrences(c,d,d).length)){ const dot=el("span","mini-dot"); dot.style.background="var(--accent)"; markers.appendChild(dot); }
     const e = state.entries[iso];
-    if (e && e.mood){ const dot=el("span","mini-dot"); dot.style.background=`var(--mood-${e.mood})`; markers.appendChild(dot); }
+    const pm = primaryMood(e);
+    if (pm){ const dot=el("span","mini-dot"); dot.style.background=`var(--mood-${pm})`; markers.appendChild(dot); }
     cell.appendChild(markers);
     cell.onclick = ()=>{ state.view="today"; state.todayCursor=d; render(); };
     wrap.appendChild(cell);
@@ -1500,13 +1518,24 @@ function renderToday(){
   }
 
   const ml = el("div"); ml.style.cssText="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin:14px 0 6px;"; ml.textContent="Mood"; planner.appendChild(ml);
-  const moodRow = el("div","mood-picker");
-  for (let i=1;i<=5;i++){
-    const b = el("button","mood-btn"+(entry.mood===i?" active":""), MOOD_EMOJI[i]);
-    b.onclick = ()=>{ entry.mood = entry.mood===i?null:i; persist(); render(); };
-    moodRow.appendChild(b);
+  const moodSlots = [
+    { key:"moodMorning",   label:"Morning"   },
+    { key:"moodAfternoon", label:"Afternoon" },
+    { key:"moodEvening",   label:"Evening"   },
+  ];
+  for (const slot of moodSlots){
+    const sl = el("div"); sl.style.cssText = "margin-bottom:8px;";
+    const cap = el("div"); cap.style.cssText = "font-size:11px;color:var(--ink-soft);margin-bottom:4px;"; cap.textContent = slot.label;
+    sl.appendChild(cap);
+    const row = el("div","mood-picker");
+    for (let i=1;i<=5;i++){
+      const b = el("button","mood-btn"+(entry[slot.key]===i?" active":""), MOOD_EMOJI[i]);
+      b.onclick = ()=>{ entry[slot.key] = entry[slot.key]===i?null:i; persist(); render(); };
+      row.appendChild(b);
+    }
+    sl.appendChild(row);
+    planner.appendChild(sl);
   }
-  planner.appendChild(moodRow);
 
   const exF = el("div","field"); exF.style.marginTop="12px"; exF.appendChild(labelEl("Exercise / movement"));
   const ex = el("input"); ex.type="text"; ex.className="auto-input"; ex.value=entry.exercise; ex.placeholder="20 min walk, etc.";
@@ -1668,7 +1697,8 @@ function renderMonthGrid(){
     const num = el("div","day-num");
     num.innerHTML = `<span><span class="num-inner">${d.getDate()}</span></span>`;
     const e = state.entries[iso];
-    if (e && e.mood){ const m=el("span","mood-pill"); m.style.background=`var(--mood-${e.mood})`; m.title=`Mood: ${MOOD_EMOJI[e.mood]}`; num.appendChild(m); }
+    const pm = primaryMood(e);
+    if (pm){ const m=el("span","mood-pill"); m.style.background=`var(--mood-${pm})`; m.title=`Mood: ${MOOD_EMOJI[pm]}`; num.appendChild(m); }
     cell.appendChild(num);
     cell.onclick = ()=>{ state.todayCursor=d; state.view="today"; render(); };
     wrap.appendChild(cell);
@@ -1972,7 +2002,12 @@ function buildReviewStats(start, end){
   let entryCount=0, moodSum=0, moodN=0, choresDone=0, habitDoneN=0, habitCells=0;
   for (let d = new Date(start); d <= end; d = addDays(d,1)){
     const iso = toISO(d); const e = state.entries[iso];
-    if (e){ entryCount++; if (e.mood){ moodSum+=e.mood; moodN++; } }
+    if (e){
+      entryCount++;
+      for (const v of [e.moodMorning, e.moodAfternoon, e.moodEvening, (e.moodMorning==null && e.moodAfternoon==null && e.moodEvening==null) ? e.mood : null]){
+        if (v){ moodSum+=v; moodN++; }
+      }
+    }
     for (const c of state.chores) if (expandOccurrences(c,d,d).length) { if (c.completed && c.completed[iso]) choresDone++; }
     for (const h of state.habits) if (!h.archivedAt){ habitCells++; if (habitDone(h.id,iso)) habitDoneN++; }
   }
