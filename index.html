@@ -541,6 +541,240 @@
   .domain-activation .da-row.neglected .da-name { color: #7a4a1e; font-weight: 700; }
   .domain-activation .da-count { color: var(--ink-soft); font-size: 12px; text-align: right; font-family: -apple-system, sans-serif; }
 
+  /* ── Anchors today (habits + build-up steps) ────── */
+  .anchor-list { display: flex; flex-direction: column; gap: 6px; }
+  .anchor-row {
+    background: var(--paper); border: 1px solid var(--rule-soft);
+    border-radius: 8px; overflow: hidden;
+  }
+  .anchor-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; cursor: pointer; user-select: none;
+  }
+  .anchor-head:hover { background: #fbf6ea; }
+  .anchor-check {
+    width: 24px; height: 24px; border: 2px solid var(--rule);
+    border-radius: 6px; display: inline-flex; align-items: center;
+    justify-content: center; flex-shrink: 0;
+    transition: background .15s ease, border-color .15s ease, transform .15s ease;
+    color: transparent; font-weight: 800; font-size: 14px;
+  }
+  .anchor-check:active { transform: scale(.9); }
+  .anchor-row.done .anchor-check {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+  .anchor-row.partial .anchor-check {
+    background: linear-gradient(135deg, var(--accent) 50%, var(--paper) 50%);
+    border-color: var(--accent);
+  }
+  .anchor-name { flex: 1; font-size: 15px; min-width: 0; }
+  .anchor-row.done .anchor-name { color: var(--ink-faint); text-decoration: line-through; }
+  .anchor-meta { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .anchor-progress {
+    font-size: 11px; color: var(--ink-soft);
+    font-family: -apple-system, sans-serif; font-weight: 600;
+    background: var(--accent-bg); padding: 2px 8px; border-radius: 999px;
+    letter-spacing: .2px;
+  }
+  .anchor-progress.done { background: var(--accent); color: #fff; }
+  .anchor-streak {
+    font-size: 11px; color: var(--ink-soft);
+    font-family: -apple-system, sans-serif; font-weight: 700;
+  }
+  .anchor-expand {
+    color: var(--ink-faint); font-size: 12px;
+    transition: transform .15s ease; line-height: 1;
+  }
+  .anchor-row.open .anchor-expand { transform: rotate(90deg); }
+  .anchor-steps {
+    border-top: 1px dashed var(--rule-soft); padding: 8px 12px 12px;
+    background: #fdfaf2; display: none;
+  }
+  .anchor-row.open .anchor-steps { display: block; }
+  .anchor-step {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 6px 0; cursor: pointer; user-select: none;
+  }
+  .anchor-step .step-num {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent-bg); color: var(--accent-deep);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 800; flex-shrink: 0;
+    font-family: -apple-system, sans-serif; margin-top: 2px;
+    transition: background .15s ease, color .15s ease;
+  }
+  .anchor-step.done .step-num { background: var(--accent); color: #fff; }
+  .anchor-step .step-name { flex: 1; font-size: 13px; line-height: 1.45; color: var(--ink); }
+  .anchor-step.done .step-name { color: var(--ink-faint); text-decoration: line-through; }
+  .anchor-step-actions {
+    display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;
+  }
+  .anchor-step-actions button {
+    background: transparent; border: 1px solid var(--rule);
+    padding: 5px 10px; border-radius: 999px; font-size: 11px;
+    cursor: pointer; color: var(--ink-soft); font-family: inherit;
+    letter-spacing: .3px; font-weight: 600;
+  }
+  .anchor-step-actions button:hover { background: var(--accent-bg); color: var(--accent-deep); }
+  .anchor-empty {
+    padding: 14px; text-align: center; color: var(--ink-faint);
+    font-size: 13px; font-style: italic;
+  }
+  .anchor-add-link {
+    display: inline-block; margin-top: 4px;
+    background: transparent; border: none; cursor: pointer;
+    color: var(--accent-deep); font-size: 12px; font-weight: 600;
+    text-decoration: underline; font-family: inherit;
+  }
+
+  /* Today completion pill in header */
+  .today-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--accent-bg); color: var(--accent-deep);
+    padding: 4px 10px; border-radius: 999px;
+    font-size: 11px; font-weight: 700; letter-spacing: .3px;
+    font-family: -apple-system, sans-serif;
+  }
+  .today-pill.zero { background: var(--rule-soft); color: var(--ink-soft); }
+
+  /* ── Edge of the day prompt ────────────────────── */
+  .edge-card {
+    background: linear-gradient(135deg, #fff7e8 0%, #fef0d5 100%);
+    border: 1px solid #e9d2a8;
+    border-radius: 8px; padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  .edge-label {
+    font-size: 10px; font-weight: 800; letter-spacing: 2px;
+    text-transform: uppercase; color: #8a5a18;
+    display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+  }
+  .edge-label .edge-spark { color: var(--accent); }
+  .edge-card input {
+    width: 100%; border: none; background: transparent;
+    border-bottom: 1px dotted #d4b176; padding: 6px 0;
+    font-family: inherit; font-size: 15px; color: var(--ink);
+  }
+  .edge-card input:focus { outline: none; border-bottom-color: var(--accent); }
+  .edge-hint { font-size: 11px; color: #8a5a18; opacity: .75; margin-top: 4px; line-height: 1.45; }
+
+  /* ── Micro-practice card (neuroplasticity/interoception) ───── */
+  .micro-card {
+    background: var(--paper); border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 12px 14px; margin-top: 14px;
+  }
+  .micro-head {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+  .micro-tag {
+    font-size: 9px; font-weight: 800; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--accent-deep);
+    background: var(--accent-bg); padding: 3px 8px; border-radius: 999px;
+    font-family: -apple-system, sans-serif;
+  }
+  .micro-tag.neuro { background: #e6e0f0; color: #5b4a82; }
+  .micro-tag.intero { background: #dfe7d8; color: #3f6244; }
+  .micro-tag.presence { background: #f7ecd9; color: #8a5a18; }
+  .micro-time { font-size: 11px; color: var(--ink-faint); margin-left: auto; font-family: -apple-system, sans-serif; }
+  .micro-prompt { font-size: 15px; color: var(--ink); line-height: 1.5; margin-bottom: 4px; }
+  .micro-detail { font-size: 12px; color: var(--ink-soft); line-height: 1.5; margin-bottom: 8px; }
+  .micro-actions {
+    display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;
+  }
+  .micro-actions button {
+    border: 1px solid var(--rule); background: var(--paper);
+    padding: 6px 12px; border-radius: 999px; font-size: 12px;
+    cursor: pointer; color: var(--ink-soft); font-family: inherit;
+    font-weight: 600;
+  }
+  .micro-actions button:hover { background: var(--accent-bg); color: var(--accent-deep); }
+  .micro-actions button.primary {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .micro-actions button.primary:hover { background: var(--accent-deep); }
+
+  /* ── Ready ritual modal ──────────────────────── */
+  .ritual-stage {
+    background: var(--paper); padding: 24px 18px; text-align: center;
+    border-radius: 10px;
+  }
+  .ritual-step-label {
+    font-size: 10px; font-weight: 800; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--accent-deep); margin-bottom: 16px;
+  }
+  .ritual-title {
+    font-size: 22px; font-weight: 700; color: var(--ink);
+    line-height: 1.35; margin-bottom: 12px;
+    font-family: "Iowan Old Style", "Palatino", serif;
+  }
+  .ritual-body { font-size: 14px; color: var(--ink-soft); line-height: 1.6; min-height: 60px; }
+  .breath-orb {
+    width: 140px; height: 140px; margin: 18px auto 16px;
+    border-radius: 50%; background: radial-gradient(circle at 40% 30%, #f7ecd9, var(--accent-bg));
+    border: 2px solid var(--accent); display: flex; align-items: center;
+    justify-content: center; transition: transform 4s ease-in-out;
+    font-size: 14px; color: var(--accent-deep); font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .breath-orb.expand { transform: scale(1.5); }
+  .ritual-dots {
+    display: flex; gap: 6px; justify-content: center; margin: 14px 0;
+  }
+  .ritual-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--rule);
+  }
+  .ritual-dot.active { background: var(--accent); }
+
+  /* ── Welcome modal ─────────────────────────── */
+  .welcome-hero {
+    text-align: center; padding: 16px 4px 8px;
+  }
+  .welcome-mark {
+    font-size: 36px; font-weight: 700; color: var(--accent-deep);
+    font-family: "Iowan Old Style", "Palatino", serif; letter-spacing: .3px;
+  }
+  .welcome-tag {
+    font-size: 12px; color: var(--ink-soft); letter-spacing: 2px;
+    text-transform: uppercase; font-weight: 700; margin-top: 4px;
+  }
+  .welcome-body { padding: 12px 4px; font-size: 14px; line-height: 1.65; color: var(--ink); }
+  .welcome-body p { margin-bottom: 10px; }
+  .welcome-list { padding-left: 18px; margin: 8px 0 4px; }
+  .welcome-list li { margin: 4px 0; }
+
+  /* ── Focus filter chips in suggestions ─────── */
+  .focus-row {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .focus-row .focus-chip {
+    padding: 4px 10px; border: 1px solid var(--rule-soft); background: var(--paper);
+    border-radius: 12px; font-size: 11px; cursor: pointer; font-weight: 600;
+    color: var(--ink-soft); letter-spacing: 0.3px;
+  }
+  .focus-row .focus-chip.active { background: var(--accent-deep); color: #fff; border-color: var(--accent-deep); }
+
+  .focus-tag-pill {
+    font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 999px;
+    font-family: -apple-system, sans-serif;
+    background: #efe9dc; color: var(--ink-soft);
+  }
+  .focus-tag-pill.neuro { background: #e6e0f0; color: #5b4a82; }
+  .focus-tag-pill.intero { background: #dfe7d8; color: #3f6244; }
+  .focus-tag-pill.presence { background: #f7ecd9; color: #8a5a18; }
+  .focus-tag-pill.edge { background: #f7dcd8; color: #7a3128; }
+
+  /* Animated checkbox tick (used in TODO-style rows) */
+  @keyframes pop {
+    0% { transform: scale(.6); opacity: .3; }
+    60% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .anchor-check, .check-box, .intero-check { transition: background .15s ease, border-color .15s ease, transform .12s ease; }
+
   /* Mobile tweaks */
   @media (max-width: 600px) {
     header.topbar { padding: 10px 14px; gap: 8px; }
@@ -677,6 +911,22 @@
           <option value="meaning">Meaning — values-aligned, even tiny versions</option>
         </select>
       </div>
+      <div class="field"><label>Skill focus (optional)</label>
+        <select id="sf-focus">
+          <option value="">— None —</option>
+          <option value="neuro">Neuroplasticity</option>
+          <option value="intero">Interoception</option>
+          <option value="presence">Presence</option>
+          <option value="edge">Edge</option>
+        </select>
+      </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;">
+          <span>Build-up steps (optional)</span>
+          <button type="button" id="sf-suggest-steps" class="btn ghost" style="font-size:11px;padding:2px 8px;min-height:24px;">✨ Smart steps</button>
+        </label>
+        <textarea id="sf-steps" placeholder="One step per line. The ladder up to the full thing." style="min-height:100px;font-size:13px;line-height:1.5;"></textarea>
+      </div>
     </div>
     <div class="m-foot">
       <button class="btn danger" id="suggestion-modal-delete">Delete</button>
@@ -715,6 +965,23 @@
           <option value="meaning">Meaning — values-aligned, even tiny versions</option>
         </select>
       </div>
+      <div class="field"><label>Skill focus (optional)</label>
+        <select id="hf-focus">
+          <option value="">— None —</option>
+          <option value="neuro">Neuroplasticity — novelty &amp; deliberate practice</option>
+          <option value="intero">Interoception — body awareness</option>
+          <option value="presence">Presence — full attention, anti-autopilot</option>
+          <option value="edge">Edge — slightly outside comfort, fear-as-fun</option>
+        </select>
+      </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;">
+          <span>Build-up steps (optional)</span>
+          <button type="button" id="hf-suggest-steps" class="btn ghost" style="font-size:11px;padding:2px 8px;min-height:24px;">✨ Smart steps</button>
+        </label>
+        <textarea id="hf-steps" placeholder="One step per line. The ladder up to the full thing.&#10;e.g.&#10;Lay out clothes on bed&#10;Change into workout clothes&#10;2-min stretch&#10;5 squats&#10;Full workout" style="min-height:120px;font-size:13px;line-height:1.5;"></textarea>
+        <div class="muted" style="font-size:11px;margin-top:4px;line-height:1.5;">Each step is checkable on Today. Checking the last step (or the habit itself) counts as the full activity. Lower the bar until you can step over it.</div>
+      </div>
     </div>
     <div class="m-foot">
       <button class="btn danger hide" id="habit-modal-delete">Delete</button>
@@ -735,6 +1002,9 @@
       </div>
       <div class="field"><label>Response — what did you feel?</label>
         <input type="text" id="sp-response" placeholder="e.g. anxiety, dread, shame spiral">
+      </div>
+      <div class="field"><label>Reframe — fear → fun</label>
+        <input type="text" id="sp-reframe" placeholder="What would make this fun? Same body, different label. (optional)">
       </div>
       <div class="field"><label>Alternative coping — small step toward, instead of away</label>
         <input type="text" id="sp-action" placeholder="e.g. read once, draft 1 sentence, walk 5 min">
@@ -806,6 +1076,59 @@
   </div>
 </div>
 
+<!-- Ready ritual modal — 60-second pre-action focus -->
+<div class="modal-bg" id="modal-ritual-bg">
+  <div class="modal" style="max-width:440px;">
+    <div class="m-head">
+      <h3 id="ritual-modal-title">Ready ritual</h3>
+      <button class="icon-btn" id="ritual-modal-close">×</button>
+    </div>
+    <div class="m-body" style="padding:0;">
+      <div class="ritual-stage">
+        <div class="ritual-step-label" id="ritual-step-label">Step 1 of 3</div>
+        <div class="ritual-title" id="ritual-title">Three slow breaths</div>
+        <div id="ritual-orb-wrap"><div class="breath-orb" id="ritual-orb">Breathe in</div></div>
+        <div class="ritual-body" id="ritual-body">In through the nose, slow. Out through the mouth, slower.</div>
+        <div class="ritual-dots" id="ritual-dots">
+          <span class="ritual-dot active"></span><span class="ritual-dot"></span><span class="ritual-dot"></span>
+        </div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn ghost" id="ritual-skip">Skip</button>
+      <button class="btn primary" id="ritual-next">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- Welcome modal — first-run primer -->
+<div class="modal-bg" id="modal-welcome-bg">
+  <div class="modal" style="max-width:520px;">
+    <div class="m-head"><h3>Welcome</h3><button class="icon-btn" id="welcome-modal-close">×</button></div>
+    <div class="m-body">
+      <div class="welcome-hero">
+        <div class="welcome-mark">Journal<span style="color:var(--accent)">.</span></div>
+        <div class="welcome-tag">Behavioral Activation · Build · Become</div>
+      </div>
+      <div class="welcome-body">
+        <p>Hi. This is your daily container for the simple, durable thing: <b>do small actions that matter, even when you don't feel like it.</b> Feelings follow action — not the other way around.</p>
+        <p>Five ideas live inside:</p>
+        <ul class="welcome-list">
+          <li><b>Anchors with build-up steps.</b> Big things start tiny. Lay out the clothes. Take the one breath. Each step counts.</li>
+          <li><b>Body check-ins (interoception).</b> Two minutes a day to feel what's actually here.</li>
+          <li><b>Micro-practices.</b> 30–90 seconds, rotating daily — for neuroplasticity, presence, or your edge.</li>
+          <li><b>Fear → fun reframe.</b> Same body, different label. Confidence comes from showing up prepared.</li>
+          <li><b>Be where your feet are.</b> Eileen Gu mindset: love the process, smile under pressure, treat fear as excitement.</li>
+        </ul>
+        <p style="margin-top:14px;color:var(--ink-soft);font-size:13px;">You can start anywhere. The smallest step still counts.</p>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn primary" id="welcome-modal-go">Start</button>
+    </div>
+  </div>
+</div>
+
 <!-- Conflict modal -->
 <div class="modal-bg" id="modal-conflict-bg">
   <div class="modal" style="width:640px;">
@@ -840,6 +1163,7 @@ const K_VALUES    = "values_v2";
 const K_IDENTITY  = "identity_v1";
 const K_WEEKLY    = "weekly_template_v1";
 const K_SUGGESTIONS = "suggestions_v1";
+const K_WELCOMED   = "welcomed_v1";
 
 const DOW_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -880,6 +1204,7 @@ const DEFAULT_IDENTITY = [
   "I keep healthy boundaries with others but also myself. I don't let any behaviors, actions, or words pass by if they've crossed the line and can communicate my feelings clearly and respectfully.",
   "I am true to myself and channel my inner child again. I exist with curiosity and let my ambition lead me down a path of elite success and fulfillment. I build success to share my blessings with others and inspire them in whatever they need.",
   "I am grounded in my spirituality and don't try to control everything. I allow things to happen to me because I know I can handle anything that comes my way and have the strength, wisdom, and ability to move through difficult situations with grace. I have no doubt.",
+  "I treat fear as excitement and stay in love with the process — preparation is what builds my confidence, and I get to enjoy the work. Where my feet are, that's where I am.",
 ];
 
 const HABIT_CATEGORIES = [
@@ -891,13 +1216,134 @@ const HABIT_CATEGORIES = [
 ];
 const HABIT_CAT_BY_KEY = Object.fromEntries(HABIT_CATEGORIES.map(c=>[c.key, c]));
 
-/* Activities from BA Plan Parts 1-4. Each has category + domain. */
+/* Focus dimension — what kind of "skill" this activity builds. Optional, layered on top of category. */
+const FOCUS_TAGS = [
+  { key:"neuro",    label:"Neuroplasticity", short:"Neuro",    blurb:"Builds new wiring through novelty, deliberate practice, and rest." },
+  { key:"intero",   label:"Interoception",   short:"Intero",   blurb:"Sharpens the signal between body and brain — sensations, breath, hunger, mood." },
+  { key:"presence", label:"Presence",        short:"Presence", blurb:"Brings full attention to one thing right now. Anti-autopilot." },
+  { key:"edge",     label:"Edge",            short:"Edge",     blurb:"Just slightly outside comfort — fear treated as fun. Confidence is built here." },
+];
+const FOCUS_BY_KEY = Object.fromEntries(FOCUS_TAGS.map(f=>[f.key, f]));
+
+/* Step templates — pre-baked build-up ladders for common anchor activities.
+   Match by normalized habit/suggestion name (substring) → ordered list of prep steps.
+   The anchor itself is implicit (the habit name). Steps ladder *up to* the anchor. */
+const STEP_TEMPLATES = [
+  { match:["workout","gym","exercise","lift","weights"],
+    steps:["Lay out workout clothes on bed","Change into workout clothes","Fill water bottle","2-min dynamic stretch","5 squats / 5 push-ups (just to start)","Full workout"] },
+  { match:["walk","cardio","treadmill","run","jog"],
+    steps:["Put on shoes","Step outside (or on treadmill) — that's enough to count","5 minutes of moving","Full walk / run"] },
+  { match:["yoga","stretch","mobility"],
+    steps:["Roll out mat","Sit on mat, 3 breaths","One pose","Full sequence"] },
+  { match:["journal","journaling"],
+    steps:["Open the app / notebook","Write today's date","One sentence about how I feel","Full journal entry"] },
+  { match:["read","book","reading"],
+    steps:["Pick up the book","Read one paragraph","Read one page","Full chapter"] },
+  { match:["meditation","meditate","breath"],
+    steps:["Find a quiet spot","Sit (or lie down) and close eyes","3 slow breaths","Full session"] },
+  { match:["email","reply","inbox"],
+    steps:["Open inbox","Read the avoided email — just read","Draft one sentence","Send"] },
+  { match:["pomodoro","work block","deep work","study"],
+    steps:["Close distracting tabs","Phone in another room","Set 25-min timer","Start — 5 minutes counts"] },
+  { match:["clean","tidy","dishes","laundry"],
+    steps:["Stand near the mess","Pick up one thing","2-min sprint","Finish the area"] },
+  { match:["call","text","check in","reach out","friend"],
+    steps:["Open contacts","Type their name","Draft one line: 'thinking of you, no reply needed'","Send"] },
+  { match:["cook","cooking","meal","dinner","breakfast"],
+    steps:["Wash hands","Get ingredients on the counter","Start one thing (water on, oven on)","Cook the meal"] },
+  { match:["sleep","bed","wind down"],
+    steps:["Put phone on charger across the room","Brush teeth, wash face","Dim lights","In bed by target time"] },
+  { match:["claude code","practice code","coding","code"],
+    steps:["Open editor","Read yesterday's code for 60 seconds","Write one line","Full practice session"] },
+  { match:["knit","sketch","draw","paint","create"],
+    steps:["Materials out","Make one mark / one stitch","5 minutes","Full session"] },
+  { match:["depop","sell","sort clothes"],
+    steps:["Stand in front of closet","Pull one item out","Decide: keep / sell / donate","Photo + list one item"] },
+];
+
+function suggestSteps(name){
+  const n = (name||"").toLowerCase();
+  for (const tpl of STEP_TEMPLATES){
+    if (tpl.match.some(m => n.includes(m))) return tpl.steps.slice();
+  }
+  return null;
+}
+
+/* Curated rotating micro-practices — 30 to 90 seconds each.
+   Surfaced on Today as "Right-now practice". Rotates by date so the same day shows the same prompt. */
+const MICRO_PRACTICES = [
+  // Interoception
+  { focus:"intero", title:"Hand on heart — feel the heartbeat",
+    detail:"Place your hand over your chest. Don't count, just feel it. Notice when the rhythm changes.", sec:60 },
+  { focus:"intero", title:"Body scan, head to toe",
+    detail:"Move your attention from the top of your head down to your feet. Just notice what's tight, warm, cool, or quiet — no fixing.", sec:90 },
+  { focus:"intero", title:"Name three sensations right now",
+    detail:"Not feelings — sensations. Pressure of feet on floor. Air on skin. Tongue against the roof of the mouth.", sec:45 },
+  { focus:"intero", title:"Hunger check",
+    detail:"On a 0–10 scale, how hungry are you? How thirsty? Don't act on it — just notice what your body is telling you.", sec:30 },
+  { focus:"intero", title:"Physiological sigh ×3",
+    detail:"Two short breaths in through the nose. One long breath out through the mouth. Repeat 3 times. The fastest way to drop stress.", sec:45 },
+  { focus:"intero", title:"4 – 7 – 8 breath",
+    detail:"In through the nose for 4. Hold for 7. Out through the mouth for 8. Do four cycles.", sec:90 },
+  { focus:"intero", title:"Where do I feel this emotion?",
+    detail:"Pick whatever you're feeling right now. Locate it in your body. Chest? Throat? Stomach? Shoulders? Just point to it.", sec:45 },
+
+  // Neuroplasticity
+  { focus:"neuro", title:"Use your non-dominant hand for 60 seconds",
+    detail:"Brush a tooth, write your name, drink water — all with the other hand. Novelty + attention = new wiring.", sec:60 },
+  { focus:"neuro", title:"Name 5 things you can see, in detail",
+    detail:"Not just 'a chair'. Color, texture, edges. Deliberate attention is the active ingredient of neuroplasticity.", sec:60 },
+  { focus:"neuro", title:"Learn one new word",
+    detail:"Look up a word you've been hearing but don't really know. Use it in a sentence out loud.", sec:60 },
+  { focus:"neuro", title:"Recall yesterday in 3 sentences",
+    detail:"Don't check your phone or photos. Just remember. Memory consolidation is how learning sticks.", sec:60 },
+  { focus:"neuro", title:"Try one thing on the opposite side",
+    detail:"Sit on the other side of the couch. Take a different route. Eat with the other hand. Disrupt the default.", sec:30 },
+  { focus:"neuro", title:"Deliberate-practice flash",
+    detail:"Pick a skill you're bad at. Do the one exact micro-rep that's hardest for you. Just one. Quality over time.", sec:90 },
+  { focus:"neuro", title:"Take a real break from the screen",
+    detail:"Look at something at least 20 feet away for 20 seconds. Rest is when consolidation happens. Don't skip it.", sec:30 },
+
+  // Presence / Eileen-Gu-style
+  { focus:"presence", title:"Be where your feet are",
+    detail:"Wherever you are, fully be here for the next minute. No phone, no planning. Just this room, this breath, this body.", sec:60 },
+  { focus:"presence", title:"What would 8.5/10 confidence look like right now?",
+    detail:"Not 10. 8.5. Posture, breath, face. Embody it for the next two minutes and see if the feeling follows.", sec:60 },
+  { focus:"presence", title:"Smile, even slightly, for 30 seconds",
+    detail:"The body cues the brain, not the other way around. A small smile signals safety. Try it before the hard thing.", sec:30 },
+  { focus:"presence", title:"Future self check-in",
+    detail:"What would the version of you who already does this thing think about right now? Borrow her attitude for a minute.", sec:60 },
+  { focus:"presence", title:"Fear → fun reframe",
+    detail:"Whatever you're slightly avoiding: write down one way it could actually be fun. Same body, different label.", sec:60 },
+  { focus:"presence", title:"One thing, fully",
+    detail:"Pick a small task in front of you. Do it for 60 seconds with full attention. No background podcast, no second tab.", sec:60 },
+  { focus:"presence", title:"Gratitude in the body",
+    detail:"Think of someone or something you're grateful for. Hold it. Notice where you feel it in your body. Stay there.", sec:60 },
+];
+
+function microOfTheMoment(){
+  const today = new Date();
+  const dayIndex = Math.floor(today.getTime() / 86400000);
+  const hour = today.getHours();
+  // Weave the time of day in: mornings lean intero/presence, mid-day neuro, evenings intero/presence.
+  let pool = MICRO_PRACTICES;
+  if (hour < 11)        pool = MICRO_PRACTICES.filter(m => m.focus !== "neuro" || dayIndex % 4 === 0);
+  else if (hour < 17)   pool = MICRO_PRACTICES;
+  else                  pool = MICRO_PRACTICES.filter(m => m.focus !== "neuro");
+  if (!pool.length) pool = MICRO_PRACTICES;
+  // Pick deterministically by day so the same day shows the same prompt, but allow shuffle within day.
+  const seed = dayIndex + (state && state.microSkip ? state.microSkip : 0);
+  return pool[seed % pool.length];
+}
+
+/* Activities from BA Plan Parts 1-4 + curated neuroplasticity/interoception/presence/edge picks.
+   Each has category + domain. Optional `focus` ties it to a neuro/intero/presence/edge skill. */
 const SUGGESTED_HABITS = [
   // Pleasure (alphabetical)
-  { name:"20 minutes outside, no phone",                 category:"pleasure",   domain:"growth" },
+  { name:"20 minutes outside, no phone",                 category:"pleasure",   domain:"growth", focus:"presence" },
   { name:"Comfort movie + snacks, no guilt",             category:"pleasure",   domain:"creativity" },
   { name:"Drink a fun drink (no water/alcohol)",         category:"pleasure",   domain:"home" },
-  { name:"Favorite playlist on full volume while cooking", category:"pleasure", domain:"home" },
+  { name:"Favorite playlist on full volume while cooking", category:"pleasure", domain:"home", focus:"presence" },
   { name:"Movie night / go out / hang with friends",     category:"pleasure",   domain:"relationships" },
   { name:"Pinterest scroll / online window shopping",    category:"pleasure",   domain:"creativity" },
   { name:"Sleep in on weekends (not past noon)",         category:"pleasure",   domain:"health" },
@@ -906,13 +1352,14 @@ const SUGGESTED_HABITS = [
   { name:"25-min Pomodoro work block",                   category:"mastery",    domain:"work" },
   { name:"3 sets of Pomodoro work",                      category:"mastery",    domain:"work" },
   { name:"Ask AI to break a stuck task into steps",      category:"mastery",    domain:"work" },
-  { name:"Learn something new about a career I want",    category:"mastery",    domain:"work" },
+  { name:"Do the slightly-scary thing first",            category:"mastery",    domain:"growth", focus:"edge" },
+  { name:"Learn something new about a career I want",    category:"mastery",    domain:"work",   focus:"neuro" },
   { name:"Make bed within 5 min of waking",              category:"mastery",    domain:"home" },
   { name:"Make to-do list with priorities",              category:"mastery",    domain:"work" },
   { name:"Pick out workout clothes",                     category:"mastery",    domain:"health" },
   { name:"Plan workout / book a class",                  category:"mastery",    domain:"health" },
-  { name:"Practice a skill I'm bad at (with self-compassion)", category:"mastery", domain:"growth" },
-  { name:"Reply to one avoided email",                   category:"mastery",    domain:"work" },
+  { name:"Practice a skill I'm bad at (with self-compassion)", category:"mastery", domain:"growth", focus:"neuro" },
+  { name:"Reply to one avoided email",                   category:"mastery",    domain:"work",   focus:"edge" },
   { name:"Sort clothes & post on Depop",                 category:"mastery",    domain:"money" },
   { name:"Stretch / dynamic warm-up",                    category:"mastery",    domain:"health" },
   { name:"Tidy one area in bedroom",                     category:"mastery",    domain:"home" },
@@ -924,45 +1371,56 @@ const SUGGESTED_HABITS = [
   { name:"Cooking night with roommates",                 category:"connection", domain:"relationships" },
   { name:"Reply to an old group chat",                   category:"connection", domain:"relationships" },
   { name:"Respond to texts within 2 days",               category:"connection", domain:"relationships" },
-  { name:"Say hi to neighbor / barista / doorman by name", category:"connection", domain:"community" },
+  { name:"Say hi to neighbor / barista / doorman by name", category:"connection", domain:"community", focus:"edge" },
   { name:"Schedule a phone call with a specific friend", category:"connection", domain:"relationships" },
-  { name:"Talk to someone new",                          category:"connection", domain:"community" },
+  { name:"Talk to someone new",                          category:"connection", domain:"community", focus:"edge" },
   { name:"Text one friend 'thinking of you, no reply needed'", category:"connection", domain:"relationships" },
   { name:"Volunteer (NY Cares, soup kitchen, cat cafe)", category:"connection", domain:"community" },
   { name:"Work from a coffee shop",                      category:"connection", domain:"community" },
 
-  // Body (alphabetical)
+  // Body (alphabetical) — heavy interoception emphasis
   { name:"15-min walk outside or treadmill",             category:"body",       domain:"health" },
   { name:"30-min walk / workout",                        category:"body",       domain:"health" },
-  { name:"4-in / 8-out breath (~1 min)",                 category:"body",       domain:"health" },
-  { name:"5-4-3-2-1 grounding",                          category:"body",       domain:"health" },
+  { name:"4-in / 8-out breath (~1 min)",                 category:"body",       domain:"health", focus:"intero" },
+  { name:"5-4-3-2-1 grounding",                          category:"body",       domain:"health", focus:"intero" },
   { name:"5-min stretch after waking",                   category:"body",       domain:"health" },
-  { name:"Body scan, head to toe (2 min)",               category:"body",       domain:"health" },
+  { name:"Body scan, head to toe (2 min)",               category:"body",       domain:"health", focus:"intero" },
+  { name:"Cold water on face / cold shower finish",      category:"body",       domain:"health", focus:"intero" },
   { name:"Drink a full glass of water before coffee",    category:"body",       domain:"health" },
   { name:"Eat a real meal (not just snacks)",            category:"body",       domain:"health" },
+  { name:"Eat one bite slowly — notice taste, texture",  category:"body",       domain:"health", focus:"intero" },
   { name:"Get morning sunlight within 1 hr of waking",   category:"body",       domain:"health" },
-  { name:"Hand on heart, feel heartbeat (60 sec)",       category:"body",       domain:"health" },
+  { name:"Hand on heart, feel heartbeat (60 sec)",       category:"body",       domain:"health", focus:"intero" },
+  { name:"Hunger / fullness check before & after meals", category:"body",       domain:"health", focus:"intero" },
   { name:"In bed by 10:30pm, phone in another room",     category:"body",       domain:"health" },
-  { name:"Physiological sigh (2 nasal in, long mouth out × 3)", category:"body", domain:"health" },
+  { name:"Locate the emotion in your body (60 sec)",     category:"body",       domain:"health", focus:"intero" },
+  { name:"Physiological sigh (2 nasal in, long mouth out × 3)", category:"body", domain:"health", focus:"intero" },
   { name:"Shower and put on real clothes",               category:"body",       domain:"health" },
   { name:"Wake up at the same time every day",           category:"body",       domain:"health" },
   { name:"Workout (3 exercises × 4 sets × 8–10 reps)",   category:"body",       domain:"health" },
 
-  // Meaning (alphabetical)
-  { name:"Create something for 30 min",                  category:"meaning",    domain:"creativity" },
+  // Meaning — neuroplasticity, deliberate practice, presence
+  { name:"Create something for 30 min",                  category:"meaning",    domain:"creativity", focus:"neuro" },
+  { name:"Deliberate practice — the hardest 5 minutes",  category:"meaning",    domain:"growth",     focus:"neuro" },
   { name:"Give myself feedback in a kind/loving way",    category:"meaning",    domain:"growth" },
   { name:"Journal for 20 minutes",                       category:"meaning",    domain:"growth" },
   { name:"Journal for 30 min",                           category:"meaning",    domain:"growth" },
-  { name:"Neuroplasticity work for 1 hr",                category:"meaning",    domain:"growth" },
-  { name:"Practice Claude code for 30 min",              category:"meaning",    domain:"work" },
-  { name:"Practice knitting for 30 min",                 category:"meaning",    domain:"creativity" },
+  { name:"Learn one new word and use it out loud",       category:"meaning",    domain:"growth",     focus:"neuro" },
+  { name:"Neuroplasticity work for 1 hr",                category:"meaning",    domain:"growth",     focus:"neuro" },
+  { name:"Non-dominant hand challenge (60 sec)",         category:"meaning",    domain:"growth",     focus:"neuro" },
+  { name:"Novelty walk — new route, no phone",           category:"meaning",    domain:"growth",     focus:"neuro" },
+  { name:"Practice Claude code for 30 min",              category:"meaning",    domain:"work",       focus:"neuro" },
+  { name:"Practice knitting for 30 min",                 category:"meaning",    domain:"creativity", focus:"neuro" },
   { name:"Read a chapter of a real book",                category:"meaning",    domain:"growth" },
   { name:"Read for 30 min",                              category:"meaning",    domain:"growth" },
   { name:"Read the bible / podcasts / pray",             category:"meaning",    domain:"growth" },
-  { name:"Read/learn something I'm curious about",       category:"meaning",    domain:"growth" },
-  { name:"Sketch for 10 minutes",                        category:"meaning",    domain:"creativity" },
+  { name:"Read/learn something I'm curious about",       category:"meaning",    domain:"growth",     focus:"neuro" },
+  { name:"Recall yesterday in 3 sentences (no phone)",   category:"meaning",    domain:"growth",     focus:"neuro" },
+  { name:"Sketch for 10 minutes",                        category:"meaning",    domain:"creativity", focus:"neuro" },
+  { name:"Smile, eat, breathe — be where my feet are",   category:"meaning",    domain:"growth",     focus:"presence" },
   { name:"Therapy session",                              category:"meaning",    domain:"growth" },
-  { name:"Try my best at something for 10 min",          category:"meaning",    domain:"growth" },
+  { name:"Try my best at something for 10 min",          category:"meaning",    domain:"growth",     focus:"neuro" },
+  { name:"Visualize tomorrow's hardest 60 seconds",      category:"meaning",    domain:"growth",     focus:"presence" },
   { name:"Volunteer hour / help a friend with something", category:"meaning",   domain:"community" },
 ];
 
@@ -997,6 +1455,9 @@ const WEEKLY_MINIMUMS = [
   "2 connection activities",
   "1 meaning / values activity",
   "Daily: morning anchor + evening anchor",
+  "Daily: 1 body check-in (interoception)",
+  "Daily: 1 micro-practice for neuroplasticity or presence",
+  "Weekly: 1 'edge' — something slightly outside comfort",
 ];
 const DEFAULT_WEEKLY_DATA = {
   "9–10 am": {
@@ -1128,7 +1589,15 @@ function saveWeekly(v)  { saveJSON(K_WEEKLY, v); markDirty(); }
 function loadSuggestions(){ return loadJSON(K_SUGGESTIONS, null); }
 function saveSuggestions(v){ saveJSON(K_SUGGESTIONS, v); markDirty(); }
 function defaultSuggestions(){
-  return SUGGESTED_HABITS.map(s => ({ id: crypto.randomUUID(), name: s.name, category: s.category, domain: s.domain, _updatedAt: nowISO() }));
+  return SUGGESTED_HABITS.map(s => ({
+    id: crypto.randomUUID(),
+    name: s.name,
+    category: s.category,
+    domain: s.domain,
+    focus: s.focus || null,
+    steps: suggestSteps(s.name) || [],
+    _updatedAt: nowISO(),
+  }));
 }
 
 /* stamp _updatedAt on whatever we modify */
@@ -1212,6 +1681,26 @@ function toggleHabit(id, iso){
   state.habitLog._updatedAt = nowISO();
   saveHabitLog(state.habitLog);
 }
+function habitStepDone(id, iso, idx){ return !!state.habitLog[`${id}|${iso}|s${idx}`]; }
+function toggleHabitStep(id, iso, idx){
+  const k = `${id}|${iso}|s${idx}`;
+  if (state.habitLog[k]) delete state.habitLog[k]; else state.habitLog[k] = true;
+  state.habitLog._updatedAt = nowISO();
+  saveHabitLog(state.habitLog);
+}
+function clearHabitSteps(id, iso){
+  let changed = false;
+  for (const k of Object.keys(state.habitLog)){
+    if (k.startsWith(`${id}|${iso}|s`)){ delete state.habitLog[k]; changed = true; }
+  }
+  if (changed){ state.habitLog._updatedAt = nowISO(); saveHabitLog(state.habitLog); }
+}
+function habitStepsCompleted(habit, iso){
+  const steps = Array.isArray(habit.steps) ? habit.steps : [];
+  let n = 0;
+  for (let i=0;i<steps.length;i++) if (habitStepDone(habit.id, iso, i)) n++;
+  return n;
+}
 function habitStreak(id){
   let d = new Date(); d.setHours(0,0,0,0); let s = 0;
   if (!habitDone(id, toISO(d))) d = addDays(d, -1);
@@ -1239,6 +1728,8 @@ function emptyEntry(){
     spirals: [],
     intero: {},
     interoNotes: {},
+    edge: "",
+    edgeDone: false,
   };
 }
 const INTERO_PROMPTS = {
@@ -1277,14 +1768,15 @@ function saveEntry(iso, e){
 }
 function isEmptyEntry(e){
   if (!e) return true;
-  const txt = [...e.gratitude,...e.intentions,...e.priorities, e.affirmation, e.exercise, e.wins, e.lessons, e.couldBeBetter, e.notes, e.moodNote].join("").trim();
+  const txt = [...e.gratitude,...e.intentions,...e.priorities, e.affirmation, e.exercise, e.wins, e.lessons, e.couldBeBetter, e.notes, e.moodNote, e.edge||""].join("").trim();
   const hasSched = Object.values(e.schedule||{}).some(v => v && v.trim());
   const hasDomains = Array.isArray(e.domains) && e.domains.length > 0;
   const hasSpirals = Array.isArray(e.spirals) && e.spirals.length > 0;
   const hasIntero = e.intero && Object.values(e.intero).some(v => v);
   const hasInteroNotes = e.interoNotes && Object.values(e.interoNotes).some(v => v && String(v).trim());
   const hasMood = e.mood != null || e.moodMorning != null || e.moodAfternoon != null || e.moodEvening != null;
-  return !txt && !hasSched && !hasMood && !hasDomains && !hasSpirals && !hasIntero && !hasInteroNotes;
+  const hasEdge = !!e.edgeDone;
+  return !txt && !hasSched && !hasMood && !hasDomains && !hasSpirals && !hasIntero && !hasInteroNotes && !hasEdge;
 }
 
 /* ════════════════════════════════════════════════════════
@@ -1391,7 +1883,15 @@ function renderToday(){
   const label = el("div"); label.style.flex="1";
   const dateLine = el("div","date-label",`${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`); dateLine.style.textAlign="center";
   const dowLine = el("div","dow-label", DOW_SHORT[d.getDay()].toUpperCase()+(iso===todayISO?" · TODAY":"")); dowLine.style.textAlign="center";
-  label.appendChild(dateLine); label.appendChild(dowLine); head.appendChild(label);
+  label.appendChild(dateLine); label.appendChild(dowLine);
+  // Completion pill (anchors done today)
+  const pill = buildTodayPill(iso);
+  if (pill){
+    const pillWrap = el("div"); pillWrap.style.cssText = "display:flex;justify-content:center;margin-top:4px;";
+    pillWrap.appendChild(pill);
+    label.appendChild(pillWrap);
+  }
+  head.appendChild(label);
   const todayBtn = el("button","btn","Today"); todayBtn.onclick = ()=>{ state.todayCursor=new Date(); render(); };
   head.appendChild(todayBtn);
   const next = el("button","icon-btn","›"); next.onclick = ()=>{ state.todayCursor = addDays(state.todayCursor,1); render(); };
@@ -1409,6 +1909,7 @@ function renderToday(){
   const aff = el("input"); aff.type="text"; aff.className="auto-input"; aff.value=entry.affirmation; aff.placeholder="I am…";
   aff.oninput = ()=>{ entry.affirmation=aff.value; persist(); };
   affF.appendChild(aff); morning.appendChild(affF);
+  morning.appendChild(buildEdgeCard(entry, persist));
   morning.appendChild(interoBlock(entry, "morning", persist));
   row1.appendChild(morning);
 
@@ -1476,6 +1977,12 @@ function renderToday(){
   row1.appendChild(planner);
   wrap.appendChild(row1);
 
+  /* Anchors today — habits with build-up steps */
+  wrap.appendChild(buildAnchorsCard(iso));
+
+  /* Right-now micro-practice (rotates daily) */
+  wrap.appendChild(buildMicroPracticeCard());
+
   /* TRAP→TRAC (above Evening reflection) */
   const trapCard = el("div","card"); trapCard.style.marginTop="14px";
   const sHead = el("div"); sHead.style.cssText = "display:flex;align-items:center;gap:10px;flex-wrap:wrap;";
@@ -1501,8 +2008,9 @@ function renderToday(){
       const body = el("div","sp-body");
       if (s.trigger)  body.appendChild(el("div","sp-trigger", "T: "+s.trigger));
       if (s.response) body.appendChild(el("div","sp-response","R: "+s.response));
+      if (s.reframe)  body.appendChild(el("div","sp-response","✨ "+s.reframe));
       if (s.action)   body.appendChild(el("div","sp-action",  "→ "+s.action));
-      if (!s.trigger && !s.response && !s.action) body.appendChild(el("div","sp-trigger","(empty)"));
+      if (!s.trigger && !s.response && !s.reframe && !s.action) body.appendChild(el("div","sp-trigger","(empty)"));
       row.appendChild(body);
       const del = el("button","sp-del","×");
       del.title = "Remove";
@@ -1536,6 +2044,182 @@ function renderToday(){
   notesCard.appendChild(ta);
   wrap.appendChild(notesCard);
   return wrap;
+}
+
+/* ── Today pill — "X anchors done" in the date header ── */
+function buildTodayPill(iso){
+  const active = state.habits.filter(h=>!h.archivedAt);
+  if (!active.length) return null;
+  let done = 0;
+  for (const h of active){
+    if (habitDone(h.id, iso)) done++;
+    else {
+      const steps = Array.isArray(h.steps) ? h.steps : [];
+      if (steps.length && habitStepsCompleted(h, iso) >= steps.length) done++;
+    }
+  }
+  const total = active.length;
+  const pill = el("div", "today-pill" + (done===0 ? " zero" : ""));
+  pill.textContent = done === 0 ? `0 of ${total} anchors` :
+                     done === total ? `🌟 All ${total} done` :
+                     `${done} of ${total} done`;
+  return pill;
+}
+
+/* ── Edge of the day prompt (Eileen-Gu-inspired) ── */
+function buildEdgeCard(entry, persist){
+  const c = el("div","edge-card");
+  const head = el("div","edge-label");
+  const spark = el("span","edge-spark","◆");
+  head.appendChild(spark);
+  head.appendChild(el("span","",`Today's edge`));
+  // checkbox if done
+  const doneBtn = el("button","",entry.edgeDone ? "✓ Done" : "Mark done");
+  doneBtn.style.cssText = "margin-left:auto;background:transparent;border:1px solid #d4b176;color:#8a5a18;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.5px;text-transform:uppercase;font-family:inherit;";
+  if (entry.edgeDone) doneBtn.style.background = "#d4b176", doneBtn.style.color = "#fff";
+  doneBtn.onclick = () => { entry.edgeDone = !entry.edgeDone; persist(); render(); };
+  head.appendChild(doneBtn);
+  c.appendChild(head);
+  const inp = el("input"); inp.type="text"; inp.value = entry.edge || "";
+  inp.placeholder = "One thing slightly outside my comfort zone today…";
+  inp.oninput = () => { entry.edge = inp.value; persist(); };
+  c.appendChild(inp);
+  const hint = el("div","edge-hint","Fear is information, not a stop sign. Same body, different label — try treating it as excitement.");
+  c.appendChild(hint);
+  return c;
+}
+
+/* ── Anchors today — habit list with build-up steps ── */
+function buildAnchorsCard(iso){
+  const card = el("div","card"); card.style.marginTop = "14px";
+  const head = h3("Today's anchors");
+  const active = state.habits.filter(h=>!h.archivedAt);
+  head.appendChild(el("span","count", `(${active.length})`));
+  const sug = el("button","btn ghost","✨ Suggestions");
+  sug.style.cssText = "padding:2px 10px;font-size:11px;min-height:24px;margin-left:auto;";
+  sug.onclick = ()=>openSuggestionsModal();
+  head.appendChild(sug);
+  card.appendChild(head);
+
+  if (!active.length){
+    const em = el("div","anchor-empty");
+    em.innerHTML = `No anchors yet. Pick a few from the <button class="anchor-add-link" id="anc-pick">BA suggestions</button> — the smallest version of any habit still counts.`;
+    card.appendChild(em);
+    em.querySelector("#anc-pick").onclick = ()=>openSuggestionsModal();
+    return card;
+  }
+
+  const list = el("div","anchor-list");
+  active.forEach(h => list.appendChild(buildAnchorRow(h, iso)));
+  card.appendChild(list);
+  return card;
+}
+
+function buildAnchorRow(h, iso){
+  const steps = Array.isArray(h.steps) ? h.steps : [];
+  const stepsDone = habitStepsCompleted(h, iso);
+  const fullyDone = habitDone(h.id, iso) || (steps.length > 0 && stepsDone >= steps.length);
+  const partial = !fullyDone && stepsDone > 0;
+
+  const row = el("div","anchor-row");
+  if (fullyDone) row.classList.add("done");
+  else if (partial) row.classList.add("partial");
+  if (state._anchorOpen && state._anchorOpen[h.id]) row.classList.add("open");
+
+  const headRow = el("div","anchor-head");
+  const checkBtn = el("div","anchor-check", fullyDone ? "✓" : "");
+  checkBtn.onclick = (ev) => {
+    ev.stopPropagation();
+    if (fullyDone){
+      // Uncheck: clear habit + any step completions for today
+      if (habitDone(h.id, iso)) toggleHabit(h.id, iso);
+      clearHabitSteps(h.id, iso);
+    } else {
+      // Mark habit done (and if there are steps, also mark all complete so progress matches)
+      if (!habitDone(h.id, iso)) toggleHabit(h.id, iso);
+      if (steps.length){
+        for (let i=0;i<steps.length;i++){
+          if (!habitStepDone(h.id, iso, i)) toggleHabitStep(h.id, iso, i);
+        }
+      }
+    }
+    render();
+  };
+  headRow.appendChild(checkBtn);
+
+  const nameWrap = el("div"); nameWrap.style.cssText = "flex:1;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;";
+  nameWrap.appendChild(el("span","anchor-name", h.name));
+  appendHabitTags(nameWrap, h);
+  if (h.focus && FOCUS_BY_KEY[h.focus]){
+    const f = FOCUS_BY_KEY[h.focus];
+    nameWrap.appendChild(el("span","focus-tag-pill " + h.focus, f.short));
+  }
+  headRow.appendChild(nameWrap);
+
+  const meta = el("div","anchor-meta");
+  if (steps.length){
+    const prog = el("span","anchor-progress" + (fullyDone ? " done" : ""), `${stepsDone}/${steps.length}`);
+    meta.appendChild(prog);
+  }
+  const streak = habitStreak(h.id);
+  if (streak > 0) meta.appendChild(el("span","anchor-streak", `🔥 ${streak}`));
+  const exp = el("span","anchor-expand", steps.length ? "›" : "");
+  meta.appendChild(exp);
+  headRow.appendChild(meta);
+
+  if (steps.length){
+    headRow.onclick = () => {
+      state._anchorOpen = state._anchorOpen || {};
+      state._anchorOpen[h.id] = !state._anchorOpen[h.id];
+      render();
+    };
+  }
+  row.appendChild(headRow);
+
+  if (steps.length){
+    const stepsWrap = el("div","anchor-steps");
+    steps.forEach((stepName, idx) => {
+      const sd = habitStepDone(h.id, iso, idx);
+      const sRow = el("div","anchor-step" + (sd ? " done" : ""));
+      sRow.appendChild(el("span","step-num", String(idx+1)));
+      sRow.appendChild(el("span","step-name", stepName));
+      sRow.onclick = () => { toggleHabitStep(h.id, iso, idx); render(); };
+      stepsWrap.appendChild(sRow);
+    });
+    const acts = el("div","anchor-step-actions");
+    const ready = el("button","","🌟 Ready ritual");
+    ready.onclick = (ev) => { ev.stopPropagation(); openRitualModal(h); };
+    acts.appendChild(ready);
+    const editBtn = el("button","","Edit steps");
+    editBtn.onclick = (ev) => { ev.stopPropagation(); openHabitModal(h.id); };
+    acts.appendChild(editBtn);
+    stepsWrap.appendChild(acts);
+    row.appendChild(stepsWrap);
+  }
+  return row;
+}
+
+/* ── Right-now micro-practice card (neuroplasticity / interoception / presence) ── */
+function buildMicroPracticeCard(){
+  const m = microOfTheMoment();
+  const card = el("div","micro-card");
+  const head = el("div","micro-head");
+  const tag = el("span","micro-tag " + m.focus, FOCUS_BY_KEY[m.focus] ? FOCUS_BY_KEY[m.focus].short : m.focus);
+  head.appendChild(tag);
+  head.appendChild(el("span","",`Right-now practice`));
+  if (m.sec) head.appendChild(el("span","micro-time", `~${m.sec}s`));
+  card.appendChild(head);
+  card.appendChild(el("div","micro-prompt", m.title));
+  card.appendChild(el("div","micro-detail", m.detail));
+  const acts = el("div","micro-actions");
+  const next = el("button","","Shuffle");
+  next.onclick = () => { state.microSkip = (state.microSkip || 0) + 1; render(); };
+  acts.appendChild(next);
+  const start = el("button","primary","Try it");
+  start.onclick = () => openRitualModal(null, m);
+  acts.appendChild(start);
+  card.appendChild(acts);
+  return card;
 }
 
 function interoBlock(entry, section, persist){
@@ -2077,6 +2761,7 @@ function openSpiralModal(iso){
   spiralForISO = iso;
   $("sp-trigger").value = "";
   $("sp-response").value = "";
+  $("sp-reframe").value = "";
   $("sp-action").value = "";
   $("modal-spiral-bg").classList.add("show");
   setTimeout(()=>$("sp-trigger").focus(), 50);
@@ -2086,14 +2771,15 @@ function saveSpiralFromModal(){
   if (!spiralForISO) return;
   const trigger = $("sp-trigger").value.trim();
   const response = $("sp-response").value.trim();
+  const reframe = $("sp-reframe").value.trim();
   const action = $("sp-action").value.trim();
-  if (!trigger && !response && !action){ closeSpiralModal(); return; }
+  if (!trigger && !response && !reframe && !action){ closeSpiralModal(); return; }
   const e = getEntry(spiralForISO);
   if (!Array.isArray(e.spirals)) e.spirals = [];
   const t = new Date();
   const hr = t.getHours();
   const time = `${hr%12===0?12:hr%12}:${String(t.getMinutes()).padStart(2,"0")}${hr<12?"a":"p"}`;
-  e.spirals.push({ time, trigger, response, action, _at: nowISO() });
+  e.spirals.push({ time, trigger, response, reframe, action, _at: nowISO() });
   saveEntry(spiralForISO, e);
   closeSpiralModal();
   render();
@@ -2101,6 +2787,7 @@ function saveSpiralFromModal(){
 
 /* Habit suggestions (BA Plan Parts 1-4) */
 let suggestFilter = null; // null = all, else category key
+let suggestFocusFilter = null; // null = all, else focus key
 
 function isHabitAlreadyAdded(name){
   const norm = s => s.toLowerCase().replace(/\s+/g," ").trim();
@@ -2111,12 +2798,16 @@ function isHabitAlreadyAdded(name){
 function getMergedSuggestions(){
   const norm = s => s.toLowerCase().replace(/\s+/g," ").trim();
   const sugList = (state.suggestions || []).map(s => ({
-    id: s.id, name: s.name, category: s.category, domain: s.domain || null, source: "suggestion",
+    id: s.id, name: s.name, category: s.category, domain: s.domain || null,
+    focus: s.focus || null, steps: s.steps || [], source: "suggestion",
   }));
   const known = new Set(sugList.map(s => norm(s.name)));
   const extras = state.habits
     .filter(h => !h.archivedAt && h.category && !known.has(norm(h.name)))
-    .map(h => ({ id: h.id, name: h.name, category: h.category, domain: h.domain || null, source: "habit" }));
+    .map(h => ({
+      id: h.id, name: h.name, category: h.category, domain: h.domain || null,
+      focus: h.focus || null, steps: h.steps || [], source: "habit",
+    }));
   return [...sugList, ...extras];
 }
 
@@ -2127,6 +2818,8 @@ function addSuggestedHabit(s){
     name: s.name,
     domain: s.domain || null,
     category: s.category || null,
+    focus: s.focus || null,
+    steps: Array.isArray(s.steps) && s.steps.length ? s.steps.slice() : (suggestSteps(s.name) || []),
     createdAt: nowISO(),
     archivedAt: null,
   }));
@@ -2144,16 +2837,31 @@ function closeSuggestionsModal(){ $("modal-suggest-bg").classList.remove("show")
 function renderSuggestionsList(filtersEl, listEl){
   filtersEl = filtersEl || $("suggest-filters");
   listEl = listEl || $("suggest-list");
-  // Filters
+  // Category filters (top row)
   filtersEl.innerHTML = "";
+  const catRow = el("div"); catRow.style.cssText = "display:flex;gap:6px;flex-wrap:wrap;";
   const allBtn = el("button","suggest-filter"+(suggestFilter==null?" active":""),"All");
   allBtn.onclick = ()=>{ suggestFilter = null; renderSuggestionsList(filtersEl, listEl); render(); };
-  filtersEl.appendChild(allBtn);
+  catRow.appendChild(allBtn);
   HABIT_CATEGORIES.forEach(c=>{
     const b = el("button","suggest-filter"+(suggestFilter===c.key?" active":""), c.short_label);
     b.onclick = ()=>{ suggestFilter = c.key; renderSuggestionsList(filtersEl, listEl); render(); };
-    filtersEl.appendChild(b);
+    catRow.appendChild(b);
   });
+  filtersEl.appendChild(catRow);
+
+  // Focus filter (second row) — neuro / intero / presence / edge
+  const focusRow = el("div","focus-row");
+  const fAll = el("button","focus-chip"+(suggestFocusFilter==null?" active":""), "Any focus");
+  fAll.onclick = ()=>{ suggestFocusFilter = null; renderSuggestionsList(filtersEl, listEl); render(); };
+  focusRow.appendChild(fAll);
+  FOCUS_TAGS.forEach(f=>{
+    const b = el("button","focus-chip"+(suggestFocusFilter===f.key?" active":""), f.label);
+    b.title = f.blurb;
+    b.onclick = ()=>{ suggestFocusFilter = f.key; renderSuggestionsList(filtersEl, listEl); render(); };
+    focusRow.appendChild(b);
+  });
+  filtersEl.appendChild(focusRow);
 
   // List grouped by category (includes user-added habits not in the static list)
   const merged = getMergedSuggestions();
@@ -2162,6 +2870,7 @@ function renderSuggestionsList(filtersEl, listEl){
     if (suggestFilter && suggestFilter !== cat.key) return;
     const items = merged
       .filter(s => s.category === cat.key)
+      .filter(s => !suggestFocusFilter || s.focus === suggestFocusFilter)
       .sort((a,b) => a.name.localeCompare(b.name));
     if (!items.length) return;
     const head = el("div","suggest-section-head", cat.label);
@@ -2174,7 +2883,19 @@ function renderSuggestionsList(filtersEl, listEl){
       dot.style.background = cat.color;
       row.appendChild(dot);
       const body = el("div");
-      body.appendChild(el("div","sg-name", s.name));
+      const nameRow = el("div"); nameRow.style.cssText = "display:flex;align-items:center;gap:6px;flex-wrap:wrap;";
+      nameRow.appendChild(el("div","sg-name", s.name));
+      if (s.focus && FOCUS_BY_KEY[s.focus]){
+        nameRow.appendChild(el("span","focus-tag-pill " + s.focus, FOCUS_BY_KEY[s.focus].short));
+      }
+      if (Array.isArray(s.steps) && s.steps.length){
+        const stepsPill = el("span","focus-tag-pill", `${s.steps.length} steps`);
+        stepsPill.title = "Has a build-up ladder";
+        stepsPill.style.background = "var(--accent-bg)";
+        stepsPill.style.color = "var(--accent-deep)";
+        nameRow.appendChild(stepsPill);
+      }
+      body.appendChild(nameRow);
       const dom = DOMAIN_BY_KEY[s.domain];
       body.appendChild(el("div","sg-meta", dom ? dom.short : "—"));
       row.appendChild(body);
@@ -2202,10 +2923,91 @@ function renderSuggestionsList(filtersEl, listEl){
 function addAllSuggestedNotYetAdded(){
   let toAdd = getMergedSuggestions().filter(s => !isHabitAlreadyAdded(s.name));
   if (suggestFilter) toAdd = toAdd.filter(s => s.category === suggestFilter);
+  if (suggestFocusFilter) toAdd = toAdd.filter(s => s.focus === suggestFocusFilter);
   if (!toAdd.length){ alert("Nothing new to add — all suggestions already in your habits."); return; }
   if (!confirm(`Add ${toAdd.length} habit${toAdd.length===1?"":"s"} to your list?`)) return;
   toAdd.forEach(s => addSuggestedHabit(s));
   renderSuggestionsList();
+}
+
+/* ── Ready ritual flow — 3 stages: breath, visualize, identity ──
+   Optional, can be triggered from any anchor habit row or any micro-practice.
+   It's a gentle 60-second pre-action focus pattern. */
+let ritualState = null;
+const RITUAL_STAGES = [
+  {
+    label: "1 of 3 · Breath",
+    title: "Three slow breaths",
+    body: "In through the nose for 4. Hold for 4. Out through the mouth for 6. Let the orb guide you.",
+    breath: true,
+  },
+  {
+    label: "2 of 3 · Visualize",
+    title: "See yourself doing the first 30 seconds",
+    body: "Don't picture the whole thing. Just the start: standing up, opening the document, taking the step. Your body rehearses what your mind sees.",
+  },
+  {
+    label: "3 of 3 · Identity",
+    title: "Who I am — out loud or in my head",
+    body: "Say one line from your identity statements. \"I'm someone who…\" Then begin. Preparation is confidence.",
+  },
+];
+function openRitualModal(habit, micro){
+  ritualState = { habit: habit || null, micro: micro || null, idx: 0, breathTimer: null };
+  $("modal-ritual-bg").classList.add("show");
+  renderRitualStage();
+}
+function closeRitualModal(){
+  if (ritualState && ritualState.breathTimer) clearInterval(ritualState.breathTimer);
+  $("modal-ritual-bg").classList.remove("show");
+  ritualState = null;
+}
+function renderRitualStage(){
+  if (!ritualState) return;
+  const stage = RITUAL_STAGES[ritualState.idx];
+  const title = ritualState.habit ? `${stage.title}` : (ritualState.micro && ritualState.idx === 0 ? ritualState.micro.title : stage.title);
+  $("ritual-step-label").textContent = stage.label;
+  $("ritual-title").textContent = title;
+  $("ritual-body").textContent = ritualState.micro && ritualState.idx === 0 ? ritualState.micro.detail : stage.body;
+  $("ritual-orb-wrap").style.display = stage.breath ? "" : "none";
+  // Dots
+  const dots = $("ritual-dots").querySelectorAll(".ritual-dot");
+  dots.forEach((d,i)=> d.classList.toggle("active", i <= ritualState.idx));
+  // Breath orb cycle
+  if (ritualState.breathTimer) { clearInterval(ritualState.breathTimer); ritualState.breathTimer = null; }
+  if (stage.breath){
+    const orb = $("ritual-orb");
+    let phase = 0; // 0 inhale, 1 hold, 2 exhale
+    orb.textContent = "Breathe in"; orb.classList.add("expand");
+    ritualState.breathTimer = setInterval(()=>{
+      phase = (phase + 1) % 3;
+      if (phase === 0){ orb.textContent = "Breathe in"; orb.classList.add("expand"); }
+      else if (phase === 1){ orb.textContent = "Hold"; }
+      else { orb.textContent = "Breathe out"; orb.classList.remove("expand"); }
+    }, 4000);
+  }
+  // Last step → button says "Begin"
+  $("ritual-next").textContent = ritualState.idx >= RITUAL_STAGES.length - 1 ? "Begin" : "Next";
+}
+function ritualAdvance(){
+  if (!ritualState) return;
+  if (ritualState.idx >= RITUAL_STAGES.length - 1){
+    closeRitualModal();
+    return;
+  }
+  ritualState.idx++;
+  renderRitualStage();
+}
+
+/* ── Welcome modal — first-run primer ── */
+function maybeShowWelcome(){
+  if (localStorage.getItem(K_WELCOMED)) return;
+  // Defer slightly so the rest of the page renders first
+  setTimeout(()=> $("modal-welcome-bg").classList.add("show"), 200);
+}
+function closeWelcome(){
+  localStorage.setItem(K_WELCOMED, "1");
+  $("modal-welcome-bg").classList.remove("show");
 }
 
 /* Rules modal (Part 7) */
@@ -2222,15 +3024,29 @@ function openRulesModal(){
 }
 function closeRulesModal(){ $("modal-rules-bg").classList.remove("show"); }
 
+function parseSteps(text){
+  return (text || "")
+    .split("\n")
+    .map(s => s.replace(/^\s*[-*•\d.)\s]+/, "").trim())
+    .filter(Boolean);
+}
+function stepsToText(steps){
+  return (Array.isArray(steps) ? steps : []).map(s => typeof s === "string" ? s : (s && s.name) || "").filter(Boolean).join("\n");
+}
 function openHabitModal(id){
   state.editingHabitId = id;
-  const n = $("hf-name"); const dom = $("hf-domain"); const cat = $("hf-category"); const del = $("habit-modal-delete");
+  const n = $("hf-name"); const dom = $("hf-domain"); const cat = $("hf-category");
+  const foc = $("hf-focus"); const steps = $("hf-steps"); const del = $("habit-modal-delete");
   if (id){
     const h = state.habits.find(x=>x.id===id); if (!h) return;
-    $("habit-modal-title").textContent="Edit habit"; n.value=h.name; dom.value = h.domain || ""; cat.value = h.category || "";
+    $("habit-modal-title").textContent="Edit habit";
+    n.value=h.name; dom.value = h.domain || ""; cat.value = h.category || "";
+    foc.value = h.focus || ""; steps.value = stepsToText(h.steps);
     del.classList.remove("hide");
   } else {
-    $("habit-modal-title").textContent="New habit"; n.value=""; dom.value=""; cat.value=""; del.classList.add("hide");
+    $("habit-modal-title").textContent="New habit";
+    n.value=""; dom.value=""; cat.value=""; foc.value=""; steps.value="";
+    del.classList.add("hide");
   }
   $("modal-habit-bg").classList.add("show"); n.focus();
 }
@@ -2239,10 +3055,24 @@ function saveHabitFromModal(){
   const n = $("hf-name").value.trim();
   const dom = $("hf-domain").value || null;
   const cat = $("hf-category").value || null;
+  const foc = $("hf-focus").value || null;
+  const steps = parseSteps($("hf-steps").value);
   if (!n){ alert("Habit name is required."); return; }
-  if (state.editingHabitId){ const h = state.habits.find(x=>x.id===state.editingHabitId); h.name=n; h.domain=dom; h.category=cat; stamp(h); }
-  else state.habits.push(stamp({ id: crypto.randomUUID(), name:n, domain:dom, category:cat, createdAt: nowISO(), archivedAt: null }));
+  if (state.editingHabitId){
+    const h = state.habits.find(x=>x.id===state.editingHabitId);
+    h.name=n; h.domain=dom; h.category=cat; h.focus=foc; h.steps=steps; stamp(h);
+  } else {
+    state.habits.push(stamp({
+      id: crypto.randomUUID(), name:n, domain:dom, category:cat, focus:foc, steps,
+      createdAt: nowISO(), archivedAt: null,
+    }));
+  }
   saveHabits(state.habits); closeHabitModal(); render();
+}
+function applySmartStepsTo(inputEl, nameEl){
+  const sug = suggestSteps(nameEl.value || "");
+  if (!sug){ alert("No template matched that name. Try something like 'workout', 'journal', 'reply to email', or write your own ladder."); return; }
+  inputEl.value = sug.join("\n");
 }
 function deleteHabitFromModal(){
   if (!state.editingHabitId) return;
@@ -2261,6 +3091,8 @@ function openSuggestionModal(id){
   $("sf-name").value = s.name || "";
   $("sf-domain").value = s.domain || "";
   $("sf-category").value = s.category || "pleasure";
+  $("sf-focus").value = s.focus || "";
+  $("sf-steps").value = stepsToText(s.steps);
   $("modal-suggestion-bg").classList.add("show");
   $("sf-name").focus();
 }
@@ -2272,6 +3104,8 @@ function saveSuggestionFromModal(){
   s.name = n;
   s.domain = $("sf-domain").value || null;
   s.category = $("sf-category").value;
+  s.focus = $("sf-focus").value || null;
+  s.steps = parseSteps($("sf-steps").value);
   stamp(s);
   saveSuggestions(state.suggestions);
   closeSuggestionModal();
@@ -2698,6 +3532,8 @@ $("habit-modal-close").onclick = closeHabitModal;
 $("habit-modal-save").onclick = saveHabitFromModal;
 $("habit-modal-delete").onclick = deleteHabitFromModal;
 $("modal-habit-bg").addEventListener("click", e=>{ if (e.target.id==="modal-habit-bg") closeHabitModal(); });
+$("hf-suggest-steps").onclick = ()=> applySmartStepsTo($("hf-steps"), $("hf-name"));
+$("sf-suggest-steps").onclick = ()=> applySmartStepsTo($("sf-steps"), $("sf-name"));
 
 $("suggestion-modal-cancel").onclick = closeSuggestionModal;
 $("suggestion-modal-close").onclick = closeSuggestionModal;
@@ -2713,6 +3549,15 @@ $("modal-spiral-bg").addEventListener("click", e=>{ if (e.target.id==="modal-spi
 $("rules-modal-close").onclick = closeRulesModal;
 $("rules-modal-ok").onclick = closeRulesModal;
 $("modal-rules-bg").addEventListener("click", e=>{ if (e.target.id==="modal-rules-bg") closeRulesModal(); });
+
+$("ritual-modal-close").onclick = closeRitualModal;
+$("ritual-skip").onclick = closeRitualModal;
+$("ritual-next").onclick = ritualAdvance;
+$("modal-ritual-bg").addEventListener("click", e=>{ if (e.target.id==="modal-ritual-bg") closeRitualModal(); });
+
+$("welcome-modal-close").onclick = closeWelcome;
+$("welcome-modal-go").onclick = closeWelcome;
+$("modal-welcome-bg").addEventListener("click", e=>{ if (e.target.id==="modal-welcome-bg") closeWelcome(); });
 
 $("suggest-modal-close").onclick = closeSuggestionsModal;
 $("suggest-modal-done").onclick = ()=>{ closeSuggestionsModal(); render(); };
@@ -2741,7 +3586,9 @@ $("conflict-all-remote").onclick = ()=>{ state.conflictQueue.forEach(c => c.reso
 
 document.addEventListener("keydown", e=>{
   if (e.key==="Escape"){
-    if ($("modal-chore-bg").classList.contains("show")) closeChoreModal();
+    if ($("modal-ritual-bg") && $("modal-ritual-bg").classList.contains("show")) closeRitualModal();
+    else if ($("modal-welcome-bg") && $("modal-welcome-bg").classList.contains("show")) closeWelcome();
+    else if ($("modal-chore-bg").classList.contains("show")) closeChoreModal();
     else if ($("modal-habit-bg").classList.contains("show")) closeHabitModal();
     else if ($("modal-suggestion-bg").classList.contains("show")) closeSuggestionModal();
     else if ($("modal-spiral-bg").classList.contains("show")) closeSpiralModal();
@@ -2806,6 +3653,7 @@ if (!loadValues())   saveJSON(K_VALUES,   state.values);   // first-run seed
 if (!loadIdentity()) saveJSON(K_IDENTITY, state.identity); // first-run seed
 setSyncStatus(state.sync ? "idle" : "idle");
 render();
+maybeShowWelcome();
 if (state.sync) syncNow(true);
 </script>
 </body>
