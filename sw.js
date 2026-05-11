@@ -1,5 +1,9 @@
 /* Daily Journal · service worker · network-first for HTML, cache-first for assets */
-const VERSION = "v24";
+const VERSION = "v25";
+
+self.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "SKIP_WAITING") self.skipWaiting();
+});
 const CACHE = `journal-${VERSION}`;
 const ASSETS = [
   "./",
