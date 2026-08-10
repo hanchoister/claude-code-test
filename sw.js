@@ -1,5 +1,5 @@
 /* Daily Journal · service worker · network-first for HTML, cache-first for assets */
-const VERSION = "v27";
+const VERSION = "v26";
 
 self.addEventListener("message", (e) => {
   if (e.data && e.data.type === "SKIP_WAITING") self.skipWaiting();
